@@ -27,7 +27,7 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
         axis.ticks.y=element_blank()) +
   xlab('') +
   ylab('') +
-  labs(fill = 'Estimated Arrival ') +
+  labs(fill = 'Green-up date \n') +
   geom_path(aes(x = long, y = lat, group = group),
             alpha = 0.4, color = 'black') + 
   theme(plot.margin=grid::unit(c(0,37,0,0), "mm"))
