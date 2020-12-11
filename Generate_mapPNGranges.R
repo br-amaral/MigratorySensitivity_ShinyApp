@@ -2,12 +2,9 @@ library(dplyr)
 library(ggplot2)
 library(dggridR)
 
-#arr_master <- read.csv('arrival_master_subset_2020-06-08.csv')
-setwd("~/Box/PhenoMismatch/App_pngMaps")
+#setwd("~/Box/PhenoMismatch")
 
-load("~/Box/PhenoMismatch/data_sps.RData")
-arr_master <- data3
-rm(data3)
+arr_master <- readRDS("ShinyTabs/data_arr.RDS")
 
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
@@ -19,25 +16,38 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
   theme(panel.grid.major = element_line(color = alpha('black', 0.2),
                                         size = 0.5),
         panel.ontop = TRUE,
-        panel.background = element_rect(fill = NA)) +
-  xlab('Longitude') +
-  ylab('Latitude') +
-  labs(fill = 'Estimated Arrival ') +
+        panel.background = element_rect(fill = NA),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  xlab('') +
+  ylab('') +
+  labs(fill = 'Estimated Arrival \n   (day of year) \n ') +
   geom_path(aes(x = long, y = lat, group = group),
             alpha = 0.4, color = 'black') + 
   theme(plot.margin=grid::unit(c(0,37,0,0), "mm"))
-
 
 spslist <- (unique(as.character(arr_master$species)))
 years <- sort(unique(as.character(arr_master$year)))
 mods <- c("GAM","IAR")
 rangs <- c("bre","mig","both")
-## function that generates the map according to year and species input
+
+## function that generates the map according to year, range, model and species 
+## arguments so you can test the function when there is no data:
+##     species <- arr_master$species[1] ; rang <- "both" ; mod <- "GAM" ; PP_YEAR <- 2002
 doplot <- function(PP_YEAR, species,mod,rang) {
   PP_YEAR <- as.numeric(PP_YEAR)
   arr_f <- arr_master[which(arr_master$species == species),]
-  arr_f <- arr_f[which(arr_f$year == PP_YEAR),]
   arr_f <- arr_f[which(arr_f$per_ovr > 0.01),]
+  
+  #min/max for plotting using output data
+  MIN <- floor(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
+  MAX <- ceiling(max(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
+  
+  arr_f <- arr_f[which(arr_f$year == PP_YEAR),]
   
   if(rang == "bre"){ arr_f <- arr_f[which(arr_f$breed_cell==TRUE),]}
   if(rang == "mig"){ arr_f <- arr_f[which(arr_f$mig_cell==TRUE),]}
@@ -46,15 +56,34 @@ doplot <- function(PP_YEAR, species,mod,rang) {
     paste(species,mod,rang,sep="_") %>%
     paste(".png",sep="")
   
-  if(dim(arr_f)[1]==0) {
+  if(dim(arr_f)[1]==0) {  ## no data
     png(name,# quality = 100,
         width = 819, height = 664, type = "cairo",
                                res = 100)
-    ggsave(filename = name, plot = last_plot())
+    hexgrid6 <- dggridR::dgconstruct(res = 6)
+    cell_grid <- dggridR::dgcellstogrid(hexgrid6, arr_master$cell)
+    cell_grid$cell <- as.numeric(cell_grid$cell)
+    
+    #merge hex spatial data with HM data
+    to_plt <- dplyr::inner_join(arr_master, cell_grid, by = 'cell')
+    
+    elp <- 
+      pp +
+      geom_polygon(data = to_plt, aes(x = long, 
+                                      y = lat, group = group#, 
+                                      #fill = arr_IAR_mean
+                                      ),
+                   alpha = 0.4) +
+      geom_path(data = to_plt, aes(x = long, 
+                                   y = lat, group = group), 
+                alpha = 0.4, color = 'black') +
+      theme(plot.margin=grid::unit(c(0,37,0,0), "mm")) +
+      ## Trying to add legend to plot with only gray hexagons:
+      scale_fill_gradientn(colors = c('red', 'blue'),
+                           limits = c(MIN, MAX)) 
+    
+    ggsave(filename = name, plot = elp)
   } else {
-    #min/max for plotting using output data
-    MIN <- floor(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
-    MAX <- ceiling(max(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
     
     #create hex grid
     hexgrid6 <- dggridR::dgconstruct(res = 6)
@@ -68,7 +97,7 @@ doplot <- function(PP_YEAR, species,mod,rang) {
         width = 819, height = 664, type = "cairo",
          res = 100)
     
-    if(mod == "IAR") { #elp <- 
+    if(mod == "IAR") { elp <- 
       pp +
         geom_polygon(data = to_plt, aes(x = long, 
                                         y = lat, group = group, 
@@ -78,7 +107,7 @@ doplot <- function(PP_YEAR, species,mod,rang) {
                   alpha = 0.4, color = 'black') +
         scale_fill_gradientn(colors = c('red', 'blue'),
                              limits = c(MIN, MAX)) + theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
-    }else{ #elp <- 
+    }else{ elp <- 
       pp +
         geom_polygon(data = to_plt, aes(x = long, 
                                         y = lat, group = group, 
@@ -90,7 +119,7 @@ doplot <- function(PP_YEAR, species,mod,rang) {
                              limits = c(MIN, MAX)) + theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
     }
     print(name)
-    ggsave(filename = name, plot = last_plot()#,
+    ggsave(filename = name, plot = elp#,
            #height = 2.865#, width = 3.896667,
            #scale = 0.7
            )
@@ -98,7 +127,10 @@ doplot <- function(PP_YEAR, species,mod,rang) {
   dev.off()
 }
 
-#lapply(PP_YEAR=years, species = spslist, mod = "GAM",doplot)
+## 
+
+
+## generate png maps
 for(i in 1:length(years)){
   for(j in 1:length(spslist)){
     for(k in 1:length(mods)){
@@ -110,7 +142,4 @@ for(i in 1:length(years)){
 }
 
 
-#[1] 2002
-#[1] "Oreothlypis_ruficapilla"
-#[1] 2002
-#[1] "Setophaga_caerulescens"
+
