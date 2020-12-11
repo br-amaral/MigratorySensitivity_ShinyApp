@@ -191,7 +191,7 @@ ran_map <- function(species,cel){
 
 ## Line plot
 plot4 <- function(species,cel){
-  #   species <- 'Tree Swallow' ; cel <- 59
+  #   species <- 'Tree Swallow' ; cel <- 59  ;  cel <- 52
   sp1 <- arr_master3[which(arr_master3$species == species),]
   sp1 <- sp1[complete.cases(sp1$arr_GAM_mean),]  ## remove rows with GAM mean NA
   sp1_c <- sp1[which(sp1$cell2 == cel),]
@@ -199,6 +199,7 @@ plot4 <- function(species,cel){
   # center both arrival and green-up
   sp1_c$std_gr_mn <- scale(sp1_c$gr_mn, scale = FALSE)
   sp1_c$std_arr_IAR_mean <- scale(sp1_c$arr_IAR_mean, scale = FALSE)
+  meang <- mean(sp1_c$gr_mn)
   
   sp1_c <- 
     sp1_c %>% 
@@ -226,6 +227,22 @@ plot4 <- function(species,cel){
   sp1_pt <- sp1_pt[order(sp1_pt$year),]
   sp1_pt <- left_join(sp1_pt,sp1_c,by=c("year","series"))
   
+  ## add green up data with no gam mean
+  '%!in%' <- function(x,y)!('%in%'(x,y))
+  nog <- which(seq(2002,2017,1) %!in% sort(unique(sp1_c$year))) + 2001
+  if(length(nog) > 0) {
+    allg <- arr_master3[which(arr_master3$cell2 == cel),c(7,8,13)]
+    allg$gr_mn <- allg$gr_mn - meang
+    allg <- distinct(allg[which(allg$year %in% nog),])
+    
+    for(i in 1:nrow(sp1_pt)){
+      for(j in 1:nrow(allg)){
+        if(sp1_pt$year[i] == allg$year[j] & sp1_pt$series[i] == "Green Up") {
+          sp1_pt$mean[i] <- allg$gr_mn[j]
+        }
+      }
+    }
+  }
   ggplot(aes(x=year, y=mean, group=series, color=series), data = sp1_pt) +
     geom_line(size = 0.8) +
     geom_point(size = 1.8) +
@@ -252,6 +269,7 @@ plot4 <- function(species,cel){
           axis.text=element_text(size=12),
           legend.title=element_blank(),
           legend.text=element_text(size=12))
+  
 }
 
 ## Trait plot
