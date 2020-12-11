@@ -47,14 +47,17 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
                                         size = 0.5),
         panel.ontop = TRUE,
         panel.background = element_rect(fill = NA),
-        axis.title.y = element_text(size = rel(1.2), angle = 90),
-        axis.title.x = element_text(size = rel(1.2), angle = 00),
-        axis.text=element_text(size=12, colour = "black"),
         legend.title=element_text(size=13),
         legend.spacing.y = grid::unit(0.5, "cm"),
         legend.text=element_text(size=rel(1.2)),
         legend.key.height=grid::unit(0.9,"cm"),
-        legend.title.align=0.5) +
+        legend.title.align=0.5,
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
   xlab('Longitude') +
   ylab('Latitude') +
   labs(fill = 'Sensitivity\n(Days/Day)') +
@@ -198,15 +201,15 @@ plot4 <- function(species,cel){
   sp1_c$std_arr_IAR_mean <- scale(sp1_c$arr_IAR_mean, scale = FALSE)
   
   sp1_c <- 
-  sp1_c %>% 
-    transmute(year,     ## seelect this columns
+    sp1_c %>% 
+    transmute(year,     ## select this columns
               cell, cell_lng, cell_lat,
               sci_name,
               arrIAR_mean = std_arr_IAR_mean,
               grMn_mean = std_gr_mn,
               grMn_sd = NA,
               arrIAR_sd = arr_IAR_sd
-              ) %>%
+    ) %>%
     pivot_longer(-c(year,cell,sci_name, cell_lng, cell_lat),         ## repeat those (doubles to have groups)
                  names_to=c("series", ".value"), names_sep="_") %>%  ##   for means and legends in ggplot
     mutate(low = mean - sd,
@@ -215,8 +218,15 @@ plot4 <- function(species,cel){
                                "Green Up" = "grMn",
                                "Bird Arrival" = "arrIAR"
            )) %>% as.data.frame()
-    
-    ggplot(aes(x=year, y=mean, group=series, color=series), data = sp1_c) +
+  
+  sp1_pt <- as.data.frame(matrix(NA,nrow=32,ncol=2))
+  sp1_pt[,1] <- as.integer(seq(2002,2017,1))
+  sp1_pt[,2] <- c(rep("Bird Arrival",16),rep("Green Up",16))
+  colnames(sp1_pt) <- c("year","series")
+  sp1_pt <- sp1_pt[order(sp1_pt$year),]
+  sp1_pt <- left_join(sp1_pt,sp1_c,by=c("year","series"))
+  
+  ggplot(aes(x=year, y=mean, group=series, color=series), data = sp1_pt) +
     geom_line(size = 0.8) +
     geom_point(size = 1.8) +
     #geom_ribbon(aes(ymin=low, ymax=high), alpha=0.1, size=0, fill="red")
@@ -225,8 +235,8 @@ plot4 <- function(species,cel){
                       ymax = high), 
                   width = 0.3,# color = f1a_bird#, 
                   alpha = 0.7,
-                  data = sp1_c
-                  ) +
+                  data = sp1_pt
+    ) +
     scale_color_manual(values=c(f1a_bird, f1a_green)) +
     theme_bw() +
     xlab('Year') +
@@ -263,8 +273,8 @@ tplo <- ggplot(mrg2_xi_PC, aes(PC1, xi_mean, group= species)) +
                                y = fit_mn,
                                group= NULL), 
             alpha = 0.6, size = 1.5) +
-  xlab('PC1') +
-  ylab('Sensitivity') +
+  xlab('Migratory Trait Score (PC 1)') +
+  ylab('Species-level Sensitivity n/      (days/day)') +
   theme_bw() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
@@ -420,6 +430,25 @@ trait_csv <- function(species){
   
 }
 
+radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hover", options = NULL){
+  
+  options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, trigger, options)
+  options = paste0("{'", paste(names(options), options, sep = "': '", collapse = "', '"), "'}")
+  bsTag <- shiny::tags$script(shiny::HTML(paste0("s
+    $(document).ready(function() {
+      setTimeout(function() {
+        $('input', $('#", id, "')).each(function(){
+          if(this.getAttribute('value') == '", choice, "') {
+            opts = $.extend(", options, ", {html: true});
+            $(this.parentElement).tooltip('destroy');
+            $(this.parentElement).tooltip(opts);
+          }
+        })
+      }, 500)
+    });
+  ")))
+  htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
+}
 
 ####
 ## Build the app
@@ -430,30 +459,33 @@ shinyApp(
 #########################################
                   
                   tabPanel("Introduction",
-                           h3("Migratory strategy drives bird sensitivity to spring green-up"),
+                           h3("Data Visualization for: Migratory strategy drives species-level variation in bird sensitivity to green-up"),
                            br(),
-                           h5("Globally,  animals and plants are shifting the timing of key life events in response to climate change, yet there exists dramatic"),
-                           h5("variation in the magnitude of these shifts both within and among species. Such differences have the potential to desynchronize"),
-                           h5("species interactions, with consequences for ecosystem functioning. However, despite recent documentation of escalating phenological"),
-                           h5("change, scientists lack an understanding of how and why phenological responses vary across space and among species. Here, we use"),
-                           h5("data from over 7 million community-contributed bird observations to derive species-specific, spatially-explicit estimates of annual"), 
-                           h5("spring migration phenology for 56 species of birds across eastern North America. We show that changes in the spring arrival of"),
-                           h5("migratory birds are broadly synchronized with fluctuations in vegetation green-up; however, the sensitivity of birds to plant phenology"),
-                           h5("varied extensively. Bird arrival responded more synchronously with vegetation green-up at higher latitudes, where phenological shifts"), 
-                           h5("are also greater. Species that migrate more slowly, arrive earlier, and overwinter further north also showed greater responsiveness to"),
-                           h5("earlier springs. Identifying how and why phenological responses to global change vary across space and among species will be critical"),
-                           h5("to improving predictions of climate impacts and strategizing conservation efforts. Efforts such as these are much needed for North"), 
-                           h5("American migratory birds, which have undergone substantial declines over the last several decades."),
+                           h5("Animals and plants are shifting the timing of key life events in response to climate change, yet despite recent documentation of escalating "),
+                           h5("phenological change, scientists lack a full understanding of how and why phenological responses vary across space and among species. "),
+                           h5("Here, we used over 7 million community-contributed bird observations to derive species-specific, spatially-explicit estimates of annual  "),
+                           h5("spring migration phenology for 56 species of birds across eastern North America. We show that changes in the spring arrival of migratory  "),
+                           h5("birds are coarsely synchronized with fluctuations in vegetation green-up and that the sensitivity of birds to plant phenology varied  "),
+                           h5("extensively. Bird arrival responded more synchronously with vegetation green-up at higher latitudes, where phenological shifts over time  "),
+                           h5("are also greater. Critically, species’ migratory traits explained variation in sensitivity to green-up, with species that migrate more slowly,  "),
+                           h5("arrive earlier, and overwinter further north showing greater responsiveness to earlier springs. Identifying how and why species vary in their  "),
+                           h5("ability to shift phenological events is fundamental to predicting species’ vulnerability to climate change. Such variation in sensitivity across  "),
+                           h5("taxa, with long-distance neotropical migrants exhibiting reduced synchrony, may help to explain substantial declines in these species  "),
+                           h5("over the last several decades. "),
                            br(),
-                           wellPanel(
-                             helpText(
-                               a("Click here to check the full the paper",
-                                 href="https://doi.org/10.1098/rstb.2011.0059",
-                                 target="_blank")
-                             )
-                           )
-                    
-                  ),
+                           h4(em("Citation:")),
+                           h5("Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, 
+                               Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor,"),
+                           h5("David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level 
+                              variation in bird sensitivity to green-up."),
+                           br(),
+                           h4(em("How to use this website:")),
+                           h5("The following tabs provide data visualization and exploration of the results reported in the above
+                              paper. Individual results are also available for download."),
+                           h5("For questions of interpretation or
+                              methods, please see the full text referenced above. For any data re-use, please cite the above
+                              publication."),
+                           br()),
 
 ########################################                  
                   tabPanel("Bird Arrival", 
@@ -473,26 +505,34 @@ shinyApp(
                                
                                radioButtons("mod",
                                             "Model:",
-                                            choices = list("GAM model (local estimation)"="GAM",
-                                                           "IAR model (spatially smooth)"="IAR"),
-                                            selected = "GAM"),
+                                            choices = list("IAR model (spatially smooth)"="IAR",
+                                                           "GAM model (local estimation)"="GAM"),
+                                            selected = "IAR"),
                                
-                               radioButtons("rang",
-                                            "Species distribuition:",
+                               radioButtons("radioSelection",
+                                            "Species distribution:",
                                             choices = list("Breeding range"="bre",
-                                                           "Migration range"="mig",
-                                                           "Breeding and migration range" = "both"),
+                                                           "Migratory range"="mig",
+                                                           "Breeding and migratory range" = "both"),
                                             selected = "both"),
-                               ## size that this column will occupy 
+                               #tags$div(title="Breeding range",verbatimTextOutput("Text")),
+
+                               radioTooltip(id = "radioSelection", choice = "bre", title = "Only the portion of the species’ range where breeding (and passage migration) occurs", placement = "right", trigger = "hover"),
+                               radioTooltip(id = "radioSelection", choice = "mig", title = "Only the portion fo the species’ range where migration (but not breeding) occurs", placement = "right", trigger = "hover"),
+                               radioTooltip(id = "radioSelection", choice = "both", title = "Combination of all areas where the species breeds and/or migrants (but does not winter)", placement = "right", trigger = "hover"),
+                               
+                               
+                               ## size that this column will occupy   
                                sliderInput("year",                                   ## data that will be entered
                                            "Year:",                                  ## title
                                            min = min(arr_master$year),               ## limits of the sliderbar
                                            max = max(arr_master$year),
                                            step = 1,                                 ## interval of sliderbar unit
-                                           value = min(arr_master$year),             ## first value to be displayd when launch the app
-                                           animate=T,                                ## add the animation
-                                           sep = "")                                 ## remove comma from year number
+                                           value = 2013, #max(arr_master$year),             ## first value to be displayd when launch the app
+                                           animate = animationOptions(loop = TRUE), #T,                                ## add the animation
+                                           sep = ""),                                 ## remove comma from year number
                                #)
+                               tags$head(tags$style(type='text/css', ".slider-animate-button { font-size: 20pt !important; }")),
                                
                              ),
                              mainPanel(
@@ -513,7 +553,7 @@ shinyApp(
                                            min = min(arr_master2$year2),               ## limits of the sliderbar
                                            max = max(arr_master2$year2),
                                            step = 1,                                 ## interval of sliderbar unit
-                                           value = min(arr_master2$year2),           ## first value to be displayd when launch the app
+                                           value = 2006, #min(arr_master2$year2),           ## first value to be displayd when launch the app
                                            animate=T,                                ## add the animation
                                            sep = ""),
                                
@@ -554,7 +594,7 @@ shinyApp(
                              column(3, 
                                     
                                     selectInput("cell", 
-                                                label = "Choose a cell to display (range in blue)",
+                                                label = "Choose a cell to display (range in blue):",
                                                 choices = cellnumbs$cell2,
                                                 selected = 59)
                              ),
@@ -575,7 +615,7 @@ shinyApp(
                            
                   ),
 ############################################                  
-                  tabPanel("Sensitivity across Latitude", 
+                  tabPanel("Sensitivity Across Latitude", 
                            #sidebarLayout(
                            #   sidebarPanel(
                            #fluidPage(theme = shinytheme("cerulean"),                                               ## size that this column will occupy
@@ -619,7 +659,7 @@ shinyApp(
                           
                            fluidRow(
                              mainPanel(
-                               splitLayout(cellWidths = c("90%", "50%"), 
+                               splitLayout(cellWidths = c("700", "420"), 
                                            plotOutput("distPlot"),
                                            plotlyOutput("plot")))
                              # )
@@ -636,12 +676,12 @@ shinyApp(
                                #             style="color:gray",align = "right")
                                 #    )
                            
-
+  
                   ),
 
 ######################################
 
-                  tabPanel("Migratory traits",
+                  tabPanel("Migratory Traits",
                            fluidRow(column(12,
                                           h5("Species-level sensitivity as a function of migratory traits."),
                                             style="color:black",align = "left")
@@ -679,28 +719,18 @@ shinyApp(
                            )
                           )
                           
-                  ),
-                  
-                  ######################################
-                  
-                  tabPanel("How to cite these data",
-                           br(),
-                           h5("Globally,  animals and plants are shifting the timing of key life events in response to climate change, yet there exists dramatic"),
-                           h5("variation in the magnitude of these shifts both within and among species. Such differences have the potential to desynchronize"),
-                           br(),
-                      
                   )
 
 ########################################  
                   
   ),
   
-  server = function(input, output) { 
+  server = function(input, output, session) { 
     
   ## arrival date TAB 2
     output$mapapic <- renderImage({
       # When input$n is 1, filename is ./images/image1.jpe
-      name <- picplot(input$year, input$sps, input$mod, input$rang)
+      name <- picplot(input$year, input$sps, input$mod, input$radioSelection)
       filename <- normalizePath(file.path('./images',
                                           paste(name, '.png', sep='')))
       
@@ -722,10 +752,10 @@ shinyApp(
       },
       content = function(file) {
         arrtab <- arr_csv(input$year, input$sps, input$mod, input$rang)
-        write.csv(arrtab, file)
+        #write.csv(arrtab, file)
       })
-    
-  ## green up TAB 3
+
+        ## green up TAB 3
     output$green <- renderImage({
       # When input$n is 1, filename is ./images/image1.jpeg
       name2 <- picgreen(input$year2)
@@ -745,7 +775,7 @@ shinyApp(
       },
       content = function(file) {
         gretab <- green_csv(input$year2)
-        write.csv(gretab, file)
+        #write.csv(gretab, file)
       })
   
   ## sensitibity TAB 4
@@ -768,7 +798,7 @@ shinyApp(
       },
       content = function(file) {
         sentab <- sensi_csv(input$sps2)
-        write.csv(sentab, file)
+        #write.csv(sentab, file)
       })
     
     ## interannual arrival var
@@ -787,7 +817,7 @@ shinyApp(
       },
       content = function(file) {
         inttab <- inter_csv(input$sps3,input$cell)
-        write.csv(inttab, file)
+        #write.csv(inttab, file)
       })
     
     ## trait plot
@@ -805,7 +835,7 @@ shinyApp(
       },
       content = function(file) {
         trtab <- trait_csv(input$sps4)
-        write.csv(trtab, file)
+        #write.csv(trtab, file)
       })
   }
 )
