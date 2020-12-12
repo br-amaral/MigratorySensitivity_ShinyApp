@@ -190,10 +190,10 @@ ran_map <- function(species,cel){
 
 ## Line plot
 plot4 <- function(species,cel){
-  #   species <- 'Tree Swallow' ; cel <- 59  ;  cel <- 52
+  #   species <- 'Tree Swallow' ; cel <- 59  ;  cel <- 52  ;  cel <- 1
   sp1 <- arr_master3[which(arr_master3$species == species),]
   sp1 <- sp1[complete.cases(sp1$arr_GAM_mean),]  ## remove rows with GAM mean NA
-  sp1_c <- sp1[which(sp1$cell2 == cel),]
+  sp1_c <- sp1[which(sp1$cell2 == cel),]  ## only cells I want
   
   # center both arrival and green-up
   sp1_c$std_gr_mn <- scale(sp1_c$gr_mn, scale = FALSE)
@@ -241,6 +241,19 @@ plot4 <- function(species,cel){
         }
       }
     }
+  }
+  
+  if(length(nog) == 16){
+    allg <- distinct(arr_master3[which(arr_master3$cell2 == cel),c(7,13)])
+    allg$gr_mn <- scale(allg$gr_mn, scale = FALSE) 
+    for(i in 1:nrow(sp1_pt)){
+      for(j in 1:nrow(allg)){
+        if(sp1_pt$year[i] == allg$year[j] & sp1_pt$series[i] == "Green Up") {
+          sp1_pt$mean[i] <- allg$gr_mn[j]
+        }
+      }
+    }
+    
   }
   ggplot(aes(x=year, y=mean, group=series, color=series), data = sp1_pt) +
     geom_line(size = 0.8) +
@@ -613,8 +626,8 @@ shinyApp(
                                     
                                     selectInput("cell", 
                                                 label = "Choose a cell to display (range in blue):",
-                                                choices = cellnumbs$cell2,
-                                                selected = 59)
+                                                choices = "",
+                                                selected = "")
                              ),
                              
                              column(3, 
@@ -826,11 +839,17 @@ shinyApp(
       })
     
     ## interannual arrival var
+    observeEvent(
+      input$sps3,
+      updateSelectInput(session, "cell", "Choose a cell to display (range in blue):", 
+                        choices = arr_master3$cell2[arr_master3$species==input$sps3]))
+
     output$range1 <- renderPlot({
       ran_map(input$sps3,input$cell)
     })
     
     output$plot4 <- renderPlot({
+      
       plot4(input$sps3,input$cell)
     })
     
