@@ -130,10 +130,10 @@ colnames(tt)[1] <- c("sci_name")
 
 arr_master3 <- left_join(arr_master3,tt, by="sci_name")
 cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
-                   seq(1,length(sort(unique(TAB$cell))),1)))
+                                 seq(1,length(sort(unique(TAB$cell))),1)))
 colnames(cellnumbs) <- c("cell","cell2")
 arr_master3 <- left_join(arr_master3,cellnumbs, by="cell")
-  
+
 f1a_green <- 'indianred'
 f1a_bird <- '#2686A0'
 
@@ -157,8 +157,8 @@ ran_sp3 <- distinct(ran_sp3)
 
 rr <- pp +
   geom_polygon(data = ran_sp3, aes(x = long, y = lat),
-  fill="white",
-  inherit.aes = FALSE, alpha = 1) +
+               fill="white",
+               inherit.aes = FALSE, alpha = 1) +
   #geom_path(data = ran_sp3, 
   #          aes(x = long,y = lat, group = cell), 
   #          inherit.aes = FALSE,
@@ -179,13 +179,13 @@ ran_map <- function(species,cel){
   centercoor <- ran_sp2[which(ran_sp2$cell2 == cel),4:5] 
   centercoor <-  centercoor[1,]
   
-   rr +
+  rr +
     geom_path(data = ran_sp2,
               aes(x = long,y = lat, group = cell),
               color="#00BFC4",
               inherit.aes = FALSE, alpha = 0.4) +
     geom_point(data = centercoor, aes(x = cell_lng, y = cell_lat), size = 4, 
-                 shape = 21, fill = "deepskyblue4",inherit.aes = FALSE )
+               shape = 21, fill = "deepskyblue4",inherit.aes = FALSE )
 }
 
 ## Line plot
@@ -333,7 +333,7 @@ arr_csv <- function(year, species,mod,rang){
                 arr_GAM_sd,
                 cell_lng,
                 cell_lat)
-    }
+  }
   
   if(mod == "IAR"){ 
     arr_master_ARR2  <- arr_master_ARR %>%
@@ -342,7 +342,7 @@ arr_csv <- function(year, species,mod,rang){
                 cell_lng,
                 cell_lat)
   }
-
+  
   for(i in 1:nrow(arr_master_ARR2)){
     if(is.na(arr_master_ARR2[i,1])){
       arr_master_ARR2[i,2] <- NA
@@ -350,7 +350,7 @@ arr_csv <- function(year, species,mod,rang){
   }
   
   colnames(arr_master_ARR2)[1:2] <- c("posterior_mean","posterior_sd")
-   
+  
   return(arr_master_ARR2)
   
 }
@@ -474,7 +474,7 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
 shinyApp(
   ui = navbarPage("Migratory Sensitivity", theme = shinytheme("flatly"),
                   
-#########################################
+                  #########################################
                   
                   tabPanel("Introduction",
                            h3("Data Visualization for: Migratory strategy drives species-level variation in bird sensitivity to green-up"),
@@ -504,8 +504,8 @@ shinyApp(
                               methods, please see the full text referenced above. For any data re-use, please cite the above
                               publication."),
                            br()),
-
-########################################                  
+                  
+                  ########################################                  
                   tabPanel("Bird Arrival", 
                            sidebarLayout(
                              sidebarPanel(#width = 4,
@@ -534,7 +534,7 @@ shinyApp(
                                                            "Breeding and migratory range" = "both"),
                                             selected = "both"),
                                #tags$div(title="Breeding range",verbatimTextOutput("Text")),
-
+                               
                                radioTooltip(id = "radioSelection", choice = "bre", title = "Only the portion of the species’ range where breeding (and passage migration) occurs", placement = "right", trigger = "hover"),
                                radioTooltip(id = "radioSelection", choice = "mig", title = "Only the portion fo the species’ range where migration (but not breeding) occurs", placement = "right", trigger = "hover"),
                                radioTooltip(id = "radioSelection", choice = "both", title = "Combination of all areas where the species breeds and/or migrants (but does not winter)", placement = "right", trigger = "hover"),
@@ -559,36 +559,36 @@ shinyApp(
                            )
                   ),
                   
-##########################################
+                  ##########################################
                   tabPanel("Green-up", 
                            
                            sidebarLayout(
                              sidebarPanel(width = 4,
-                               #fluidPage(theme = shinytheme("cerulean"),                                               ## size that this column will occupy
-                               
-                               sliderInput("year2",                                   ## data that will be entered
-                                           "Year:",                                  ## title
-                                           min = min(arr_master2$year2),               ## limits of the sliderbar
-                                           max = max(arr_master2$year2),
-                                           step = 1,                                 ## interval of sliderbar unit
-                                           value = 2006, #min(arr_master2$year2),           ## first value to be displayd when launch the app
-                                           animate=T,                                ## add the animation
-                                           sep = ""),
-                               
-                               downloadLink('downloadData2', 'Click here to download data',class = "butt"),
-                               tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")), # background color and font color
-                               
-                               br(),  ## blank rows between menus 
-                               br(),
-                               
-                               h6("Estimates of spring vegetation phenology ('green-up') obtained from the 
+                                          #fluidPage(theme = shinytheme("cerulean"),                                               ## size that this column will occupy
+                                          
+                                          sliderInput("year2",                                   ## data that will be entered
+                                                      "Year:",                                  ## title
+                                                      min = min(arr_master2$year2),               ## limits of the sliderbar
+                                                      max = max(arr_master2$year2),
+                                                      step = 1,                                 ## interval of sliderbar unit
+                                                      value = 2006, #min(arr_master2$year2),           ## first value to be displayd when launch the app
+                                                      animate=T,                                ## add the animation
+                                                      sep = ""),
+                                          
+                                          downloadLink('downloadData2', 'Click here to download data',class = "butt"),
+                                          tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")), # background color and font color
+                                          
+                                          br(),  ## blank rows between menus 
+                                          br(),
+                                          
+                                          h6("Estimates of spring vegetation phenology ('green-up') obtained from the 
                                   Moderate Resolution Imaging Spectroradiometer (MODIS) Land Cover Dynamics 
                                   (MCD12Q2) Version 6 data product (https://lpdaac.usgs.gov/products/mcd12q2v006/). 
                                   Values shown are within-cell averages of 'midgreen-up' dates, for all pixels classified as 
                                   forest, according to the MODIS Land Cover Type (MCD12Q1) Version 6 data product
                                   (https://lpdaac.usgs.gov/products/mcd12q1v006/).",style = "font-size:12px;")
-                               
-                               #)
+                                          
+                                          #)
                              ),
                              mainPanel(
                                imageOutput("green") #,
@@ -597,7 +597,7 @@ shinyApp(
                            )
                   ),
                   
-########################################
+                  ########################################
                   tabPanel("Interannual Variation", 
                            #sidebarLayout(
                            # sidebarPanel(
@@ -632,16 +632,16 @@ shinyApp(
                            #)
                            
                   ),
-############################################                  
+                  ############################################                  
                   tabPanel("Sensitivity Across Latitude", 
                            #sidebarLayout(
                            #   sidebarPanel(
                            #fluidPage(theme = shinytheme("cerulean"),                                               ## size that this column will occupy
                            fluidRow(column(12,
-                                            h5("Spatial variation in sensitivity of bird arrival to green-up, where sensitivity is 
+                                           h5("Spatial variation in sensitivity of bird arrival to green-up, where sensitivity is 
                                                   defined as the magnitude of change in bird arrival (in days) for every one day change 
                                                   in green-up."),
-                                            style="color:black",align = "left")
+                                           style="color:black",align = "left")
                            ),
                            
                            fluidRow(column(12,
@@ -673,8 +673,8 @@ shinyApp(
                            column(7,
                                   h6(em("* Put the cursor on top of the lines to find out which species they belong to")),
                                   style="color:gray",align = "right"),
-                     
-                          
+                           
+                           
                            fluidRow(
                              mainPanel(
                                splitLayout(cellWidths = c("700", "420"), 
@@ -685,24 +685,24 @@ shinyApp(
                            )#,
                            
                            #fluidRow( br(),
-                                     
+                           
                            #          column(6,
                            #                h6(em("."),style="color:white")
-                            #         ),
-                             #        column(6,
-                              #              h6(em("* Put the cursor on top of the lines to find out which species they belong to")),
-                               #             style="color:gray",align = "right")
-                                #    )
+                           #         ),
+                           #        column(6,
+                           #              h6(em("* Put the cursor on top of the lines to find out which species they belong to")),
+                           #             style="color:gray",align = "right")
+                           #    )
                            
-  
+                           
                   ),
-
-######################################
-
+                  
+                  ######################################
+                  
                   tabPanel("Migratory Traits",
                            fluidRow(column(12,
-                                          h5("Species-level sensitivity as a function of migratory traits."),
-                                            style="color:black",align = "left")
+                                           h5("Species-level sensitivity as a function of migratory traits."),
+                                           style="color:black",align = "left")
                            ),
                            
                            fluidRow(column(12,
@@ -730,22 +730,28 @@ shinyApp(
                                br(),
                                
                                h5(em("* Put the cursor on top of the points to find out which species they belong to"))
-                            ),
-                            
-                           mainPanel(
-                             plotlyOutput("plotTrait")
+                             ),
+                             
+                             mainPanel(
+                               fluidRow(column(10, align="center",
+                                               plotlyOutput("plotTrait"))),
+                               fluidRow(column(10, align="center",
+                                               imageOutput("arrow") 
+                                               #img(src = "pc1arrow2.png"#, 
+                                                   #height = 80, width = 800
+                                                   ))
+                             )
                            )
-                          )
-                          
+                           
                   )
-
-########################################  
+                  
+                  ########################################  
                   
   ),
   
   server = function(input, output, session) { 
     
-  ## arrival date TAB 2
+    ## arrival date TAB 2
     output$mapapic <- renderImage({
       # When input$n is 1, filename is ./images/image1.jpe
       name <- picplot(input$year, input$sps, input$mod, input$radioSelection)
@@ -759,7 +765,7 @@ shinyApp(
       )
     }, deleteFile = FALSE)
     
-      output$downloadData1 <- downloadHandler(
+    output$downloadData1 <- downloadHandler(
       filename = function() {
         name1 <- sub(" ","",input$sps)  
         if(input$mod == "GAM") {
@@ -772,8 +778,8 @@ shinyApp(
         arrtab <- arr_csv(input$year, input$sps, input$mod, input$rang)
         #write.csv(arrtab, file)
       })
-
-        ## green up TAB 3
+    
+    ## green up TAB 3
     output$green <- renderImage({
       # When input$n is 1, filename is ./images/image1.jpeg
       name2 <- picgreen(input$year2)
@@ -795,13 +801,13 @@ shinyApp(
         gretab <- green_csv(input$year2)
         #write.csv(gretab, file)
       })
-  
-  ## sensitibity TAB 4
+    
+    ## sensitibity TAB 4
     output$distPlot <- renderPlot({
       doplot(input$sps2)
     })
     
-  #  nms <- unique(TAB$species)
+    #  nms <- unique(TAB$species)
     
     output$plot <- renderPlotly({
       p <- doline(input$sps2)
@@ -843,8 +849,8 @@ shinyApp(
     output$plotTrait <- renderPlotly({
       t <- trait_plot(input$sps4)
       ggplotly(t, tooltip = c("species")
-               )
-      })
+      )
+    })
     
     output$downloadData5 <- downloadHandler(
       filename = function() {
@@ -855,5 +861,20 @@ shinyApp(
         trtab <- trait_csv(input$sps4)
         #write.csv(trtab, file)
       })
+    
+    output$arrow <- renderImage({
+      # When input$n is 1, filename is ./images/image1.jpeg
+      filename <- normalizePath(file.path('./www',
+                                          'pc1arrow2.png'))
+      
+      # Return a list containing the filename
+      list(src = filename#,
+           #height = 100,
+           #width = 600
+      )
+    }, deleteFile = FALSE)
+    
+    
+
   }
 )
