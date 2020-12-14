@@ -23,56 +23,80 @@ for(i in 1:nrow(arr_master)){
   }
 }
 
-## change colnames for species names and add speies names as the drop out menu in the shiny app
+## change colnames for species names and add species names as the drop out menu in the shiny app
 colnames(arr_master)[1] <- "sci_name"
-specieskey <- read.csv("Data/Raw/CaseyCodes.csv") %>%
-  transmute(CaseyCode,
-            PRIMARY_COM_NAME) %>%
-  as.data.frame()
-colnames(specieskey) <- c("sci_name","species")
-specieskey$sci_name <- as.character(specieskey$sci_name)
-specieskey$species <- as.character(specieskey$species)
-arr_master2 <- left_join(arr_master,specieskey,by = "sci_name")
+specieskey <- read.csv("Data/Raw/species_reference.csv")
 
-arr_master <- arr_master2
+specieskey2 <- dplyr::select(specieskey, NoQuotes, PRIMARY_COM_NAME)
+colnames(specieskey2) <- c("sci_name","species")
+arr_master2 <- dplyr::left_join(arr_master,specieskey2,by = "sci_name")
 
-saveRDS(arr_master, file = "data_arr.RDS")
+saveRDS(arr_master2, file = "Data/data_arr.RDS")
 
 ## format sensitivity data
-
-head(TAB)
-colnames(TAB)
-
 sensi <- readRDS("Data/Raw/arr-gr-SVC-sens-psummary-2020-08-25.rds")
 
-## change colnames for species names and add speies names as the drop out menu in the shiny app
+## change colnames for species names and add species names as the drop out menu in the shiny app
 colnames(sensi)[1] <- "sci_name"
-sensi2 <- left_join(sensi,specieskey,by = "sci_name")
+sensi2 <- left_join(sensi,specieskey2,by = "sci_name")
 
-sensi <- sensi2
+sensi3 <- dplyr::select(sensi2, sci_name, species, cell, cell_lat, cell_lng, 
+                        beta_mean, beta_sd, xi_mean, xi_sd, gamma_mean, gamma_sd)
+saveRDS(sensi3, file = "Data/data_sensi.RDS")
 
-saveRDS(sensi, file = "data_sensi.RDS")
 
 ##############
-## traits plot
+## sens plots
+
 
 # load data ---------------------------------------------------------------
 
-psummary <- readRDS('Data/Raw/arr-gr-SVC-sens-psummary-2020-08-25_2.rds')
-DATA <- readRDS('Data/Raw/arr-gr-SVC-sens-data-2020-08-25.rds')
+psummary <- sensi2
 fit_subset <- readRDS('Data/Raw/arr-gr-SVC-sens-stan-output-subset-2020-08-25.rds')
+DATA <- readRDS('Data/Raw/arr-gr-SVC-sens-data-2020-08-25.rds')
+
+usp <- unique(psummary$species)
+
+#get points for species-specific slopes
+#number of lat to sim
+L <- 10
+#species-level lines
+sensim_df <- data.frame(species = rep(NA, L * length(usp)),
+                        slat = NA,
+                        lat = NA,
+                        sensim = NA)
+counter <- 1
+for (i in 1:length(usp))
+{
+  #i <- 1
+  temp <- dplyr::filter(psummary, species == usp[i])
+  t_xi <- temp$xi_mean[1]
+  t_gamma <- temp$gamma_mean[1]
+  sc_lat <- scale(temp$cell_lat, scale = FALSE)  
+  SLAT <- seq(range(sc_lat)[1], range(sc_lat)[2], length.out = L)
+  cnt <- attr(sc_lat, 'scaled:center')
+  
+  sensim_df$species[counter:(counter + L - 1)] <- usp[i]
+  sensim_df$slat[counter:(counter + L - 1)] <- SLAT
+  sensim_df$lat[counter:(counter + L - 1)] <- SLAT + cnt
+  sensim_df$sensim[counter:(counter + L - 1)] <- t_xi + t_gamma * SLAT
+  
+  counter <- counter + L
+}
+
+saveRDS(sensim_df, file="Data/fit_df_tab5.rds")    
+
+
+##############
+## traits plot
 
 # process -----------------------------------------------------------------
 
 #merge xi estimates with PC1
 mrg_xi_PC <- data.frame(unique(psummary[,c('species', 
-                                           'xi_mean', 'xi_sd', 
-                                           'gamma_mean')]),
+                                           'xi_mean', 'xi_sd')]),
                         PC1 = DATA$PC1)
 
-agg_b <- aggregate(beta_mean ~ species, psummary, function(x) quantile(x, probs = 0.95))
-
-mrg2_xi_PC <- dplyr::left_join(mrg_xi_PC, agg_b, by = 'species')
 
 # get slope and ribbon ----------------------------------------------------
 
@@ -95,9 +119,19 @@ fit_UCI <- apply(fit_sim, 2, function(x) quantile(x, probs = 0.975))
 
 fit_df <- data.frame(sim_PC1, fit_mn, fit_LCI, fit_UCI)
 
-colnames(mrg2_xi_PC)[1] <- "sci_name"
-mrg2_xi_PC <- left_join(mrg2_xi_PC,specieskey,by = "sci_name")
+colnames(mrg_xi_PC)[1] <- "sci_name"
+mrg2_xi_PC <- left_join(mrg_xi_PC, specieskey2, by = "sci_name")
 
 saveRDS(mrg2_xi_PC, file="Data/mrg2_xi_PC.rds")
-saveRDS(fit_df, file="Data/fit_df.rds")       
+saveRDS(fit_df, file="Data/fit_df_tab6.rds")       
+
+
+
+# filter green-up for data download
+gr_df <- readRDS('Data/Raw/MidGreenup-2020-08-06-forest.rds')
+gr_df2 <- dplyr::select(gr_df, year, cell, cell_lat, cell_lng, gr_mn, gr_ncell, gr_pcell, gr_type)
+ucell <- unique(arr_master$cell)
+for_gr <- dplyr::filter(gr_df2, cell %in% ucell, year %in% 2002:2017)
+
+saveRDS(for_gr, 'Data/for_green-up_dl.rds')
 
