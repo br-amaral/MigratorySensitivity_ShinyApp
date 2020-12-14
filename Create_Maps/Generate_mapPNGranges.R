@@ -2,7 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(dggridR)
 
-arr_master <- readRDS("Data/Raw/pheno-data-2020-08-25.rds")
+arr_master <- readRDS("Data/data_arr.rds")
 
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
@@ -33,6 +33,7 @@ years <- sort(unique(as.character(arr_master$year)))
 mods <- c("GAM","IAR")
 rangs <- c("bre","mig","both")
 
+
 ## function that generates the map according to year, range, model and species 
 ## arguments so you can test the function when there is no data:
 ##     species <- arr_master$species[1] ; rang <- "both" ; mod <- "GAM" ; PP_YEAR <- 2002
@@ -44,9 +45,6 @@ doplot <- function(PP_YEAR, species,mod,rang) {
   #min/max for plotting using output data
   MIN <- floor(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
   MAX <- ceiling(max(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
-  
-  #add missing years to df
-  miss_yrs <- as.numeric(years[which(years %ni% unique(arr_f$year))])
 
   arr_f <- arr_f[which(arr_f$year == PP_YEAR),]
   
