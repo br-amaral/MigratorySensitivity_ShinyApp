@@ -17,7 +17,7 @@ library(geosphere)
 
 ###################### Bird arrival date map - TAB 2 ###################### 
 ## load data
-arr_master <- readRDS("data_arr.RDS")
+arr_master <- readRDS("Data/data_arr.RDS")
 arr_master3 <- arr_master2 <- arr_master
 colnames(arr_master2)[7] <- c("year2")
 
@@ -34,8 +34,8 @@ picgreen <- function(year){
   return(name) 
 }
 
-##################  Sensitivuty analyses - TAB 4 ##################
-## load maps and plot formating
+##################  Sensitivity analyses - TAB 4 ##################
+## load maps and plot formatting
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
                                   group = group)) +
@@ -66,10 +66,8 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
 
 rm(worldmap)
 
-TAB <- readRDS("data_sensi.RDS")
-colnames(TAB)[1] <- "scien"
-colnames(TAB)[17] <- "species"
-load("species_Grid.RData")
+TAB <- readRDS("Data/data_sensi.RDS")
+load("Data/species_Grid.RData")
 
 ## sensitivity map
 doplot <- function(species) {
@@ -85,7 +83,6 @@ doplot <- function(species) {
   #merge hex spatial data with HM data
   to_plt <- dplyr::inner_join(arr_f, cell_grid, by = 'cell')
   
-  #pre-IAR
   pp +
     geom_polygon(data = to_plt, aes(x = long, 
                                     y = lat, group = group, 
@@ -103,8 +100,9 @@ doplot <- function(species) {
 
 ## Line plot
 ## all species
-qq <- ggplot(data = TAB, aes(x = cell_lat, y = beta_mean, group = species)) + 
-  geom_smooth( method = lm, se = FALSE, size=0.8, col="gray") +
+sensim_df <- readRDS('Data/fit_df_tab5.rds')
+qq <- ggplot(sensim_df, aes(lat, sensim, group = factor(species))) +
+  geom_line(alpha = 0.15, size = 1.2) +
   theme_classic() +
   xlab("Latitude (Degrees)") +
   ylab("Sensitivity (Days / Day)") +
@@ -115,20 +113,12 @@ qq <- ggplot(data = TAB, aes(x = cell_lat, y = beta_mean, group = species)) +
   ) 
 ## add species of interest on top 
 doline <- function(species){
-  arr_f <- TAB[which(TAB$species == species),]
-  qq +  geom_smooth(data = arr_f, aes(x = cell_lat, y = beta_mean),
-                    method = lm, se = FALSE, size=0.8, col="black") 
+  sensim_df_f <- dplyr::filter(sensim_df, species == species)
+  qq + geom_line(data = sensim_df_f, alpha = 0.8, size = 1.2, color = 'black')
 }
 
-################ Interannual variation - TAB 5 ##################
-## load data
-tt <- readRDS('arr-gr-SVC-sens-data-2020-08-25-centroids.rds')
+################ Interannual variation - TAB 4 ##################
 
-## file with the center of the species distribuition
-tt <- as.data.frame(tt$f_mrg2[,c(1,11,12)])
-colnames(tt)[1] <- c("sci_name")
-
-arr_master3 <- left_join(arr_master3,tt, by="sci_name")
 cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
                                  seq(1,length(sort(unique(TAB$cell))),1)))
 colnames(cellnumbs) <- c("cell","cell2")
@@ -142,10 +132,10 @@ f1a_bird <- '#2686A0'
 ran_sp <- arr_master3 
 
 #create hex grid
-cell_grid_tab5 <- readRDS("cell_grid_tab5.rds") ## load grid - package not on CRAN
+cell_grid_tab4 <- readRDS("Data/master_cell_grid.rds") ## load grid - package not on CRAN
 
 #merge hex spatial data with HM data
-ran_sp <- left_join(ran_sp, cell_grid_tab5, by = 'cell')%>%
+ran_sp <- left_join(ran_sp, cell_grid_tab4, by = 'cell')%>%  
   transmute(species,
             cell,cell2,
             cell_lat,cell_lng,
@@ -156,13 +146,13 @@ ran_sp3$species <- NA
 ran_sp3 <- distinct(ran_sp3)
 
 rr <- pp +
-  geom_polygon(data = ran_sp3, aes(x = long, y = lat),
+  geom_polygon(data = cell_grid_tab4, aes(x = long, y = lat),
                fill="white",
                inherit.aes = FALSE, alpha = 1) +
-  #geom_path(data = ran_sp3, 
-  #          aes(x = long,y = lat, group = cell), 
-  #          inherit.aes = FALSE,
-  #          color = 'black') + 
+  geom_path(data = cell_grid_tab4,
+            aes(x = long,y = lat, group = cell),
+            inherit.aes = FALSE,
+            color = 'black', alpha = 0.2) +
   annotate('text', x = ran_sp3$cell_lng, y = ran_sp3$cell_lat,
            label = ran_sp3$cell2, col = 'black', alpha = 0.9,
            size = 3)
@@ -182,10 +172,10 @@ ran_map <- function(species,cel){
   rr +
     geom_path(data = ran_sp2,
               aes(x = long,y = lat, group = cell),
-              color="#00BFC4",
-              inherit.aes = FALSE, alpha = 0.4) +
+              color="goldenrod",
+              inherit.aes = FALSE, alpha = 0.8, size = 1.1) +
     geom_point(data = centercoor, aes(x = cell_lng, y = cell_lat), size = 4, 
-               shape = 21, fill = "deepskyblue4",inherit.aes = FALSE )
+               shape = 21, fill = "firebrick3",inherit.aes = FALSE )
 }
 
 ## Line plot
@@ -284,9 +274,10 @@ plot4 <- function(species,cel){
   
 }
 
-## Trait plot
-mrg2_xi_PC <- readRDS(file="mrg2_xi_PC.rds")
-fit_df <- readRDS(file="fit_df.rds") 
+################ Mig traits - TAB 6 ##################
+
+mrg2_xi_PC <- readRDS("Data/mrg2_xi_PC.rds")
+fit_df <- readRDS(file="Data/fit_df_tab6.rds") 
 
 tplo <- ggplot(mrg2_xi_PC, aes(PC1, xi_mean, group= species)) +
   geom_errorbar(aes(ymin = (xi_mean - xi_sd), 
@@ -335,7 +326,7 @@ arr_csv <- function(year, species,mod,rang){
   
   arr_master_ARR <- arr_master[which(arr_master$species == species),]
   arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$year == year),]
-  arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$per_ovr > 0.01),]
+  arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$per_ovr >= 0.05),]
   
   if(rang == "bre"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$breed_cell==TRUE),]}
   if(rang == "mig"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$mig_cell==TRUE),]}
@@ -371,23 +362,14 @@ arr_csv <- function(year, species,mod,rang){
 ## green up data download - TAB 3
 green_csv <- function(year){
   
-  arr_master_GRE <- arr_master[which(arr_master$year == year),] 
+  t_gr <- readRDS('Data/for_green-up_dl.rds')
+  gr2 <- dplyr::filter(t_gr, year == year) 
   
-  arr_master_GRE2 <- arr_master_GRE %>%
-    transmute(gr_mn,
-              cell_lng,
-              cell_lat
-    ) 
-  
-  arr_master_GRE2 <- distinct(arr_master_GRE2)
-  
-  colnames(arr_master_GRE2)[1] <- c("green_up_mean")
-  
-  return(arr_master_GRE2)
+  return(gr2)
   
 }
 
-## csv file for sensitivity - file is TAB 4
+## csv file for sensitivity - file is TAB 5
 sensi_csv <- function(species){
   
   TAB2 <- TAB[which(TAB$species == species),] 
@@ -407,43 +389,25 @@ sensi_csv <- function(species){
   
 }
 
-## csv file for interannual arrival variation - file is TAB 5
+## csv file for interannual arrival variation - file is TAB 4
 inter_csv <- function(species,cel){
   
-  INT <- arr_master3[which(arr_master3$species == species),] 
+  INT <- dplyr::filter(arr_master3, species == 'Tree Swallow')
+  na_idx <- which(is.na(INT$arr_GAM_mean))
+  INT$arr_IAR_mean[na_idx] <- NA
+  INT$arr_IAR_sd[na_idx] <- NA
   
   INT2 <- INT %>%
     transmute(year, 
               cell,
               cell2,
-              cell_lng,
               cell_lat,
               arr_IAR_mean,
-              gr_mn,
-              arr_IAR_sd
-    ) 
-  
-  INT2 <- INT2[which(INT2$cell2 == cel),]
-  
-  INT2$std_gr_mn <- scale(INT2$gr_mn, scale = FALSE)
-  INT2$std_arr_IAR_mean <- scale(INT2$arr_IAR_mean, scale = FALSE)
-  
-  INT3 <- INT2 %>%
-    transmute(year, 
-              cell_lng,
-              cell_lat,
-              std_arr_IAR_mean,
               arr_IAR_sd,
-              std_gr_mn
+              gr_mn
     ) 
   
-  for(i in 1:nrow(INT3)){
-    if(is.na(INT3[i,4])){
-      INT3[i,5] <- NA
-    }
-  }
-  
-  colnames(INT3)[4:6] <- c("posterior_mean","posterior_sd","green_up_mean")
+  INT3 <- INT2[which(INT2$cell2 == cel),]
   
   return(INT3)
   
@@ -625,7 +589,7 @@ shinyApp(
                              column(3, 
                                     
                                     selectInput("cell", 
-                                                label = "Choose a cell to display (range in blue):",
+                                                label = "Choose a cell to display (range in gold):",
                                                 choices = "",
                                                 selected = "")
                              ),
@@ -841,7 +805,7 @@ shinyApp(
     ## interannual arrival var
     observeEvent(
       input$sps3,
-      updateSelectInput(session, "cell", "Choose a cell to display (range in blue):", 
+      updateSelectInput(session, "cell", "Choose a cell to display (range in gold):", 
                         choices = arr_master3$cell2[arr_master3$species==input$sps3]))
 
     output$range1 <- renderPlot({
