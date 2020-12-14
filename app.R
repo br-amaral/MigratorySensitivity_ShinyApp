@@ -385,7 +385,10 @@ sensi_csv <- function(species){
 ## csv file for interannual arrival variation - file is TAB 4
 inter_csv <- function(species,cel){
   
-  INT <- dplyr::filter(arr_master3, species == species, !is.na(arr_GAM_mean))
+  INT <- dplyr::filter(arr_master3, species == 'Tree Swallow')
+  na_idx <- which(is.na(INT$arr_GAM_mean))
+  INT$arr_IAR_mean[na_idx] <- NA
+  INT$arr_IAR_sd[na_idx] <- NA
   
   INT2 <- INT %>%
     transmute(year, 
@@ -397,27 +400,7 @@ inter_csv <- function(species,cel){
               arr_IAR_sd,
               gr_mn) 
   
-  INT2 <- INT2[which(INT2$cell2 == cel),]
-  
-  INT2$std_gr_mn <- scale(INT2$gr_mn, scale = FALSE)
-  INT2$std_arr_IAR_mean <- scale(INT2$arr_IAR_mean, scale = FALSE)
-  
-  INT3 <- INT2 %>%
-    transmute(year, 
-              cell_lng,
-              cell_lat,
-              std_arr_IAR_mean,
-              arr_IAR_sd,
-              std_gr_mn
-    ) 
-  
-  for(i in 1:nrow(INT3)){
-    if(is.na(INT3[i,4])){
-      INT3[i,5] <- NA
-    }
-  }
-  
-  colnames(INT3)[4:6] <- c("posterior_mean","posterior_sd","green_up_mean")
+  INT3 <- INT2[which(INT2$cell2 == cel),]
   
   return(INT3)
   
@@ -431,7 +414,6 @@ trait_csv <- function(species){
               xi_mean,
               xi_sd,
               PC1)
-  
 }
 
 ## Create radio tooltip to explain species distributions
