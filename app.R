@@ -98,27 +98,23 @@ doplot <- function(species) {
   
 }
 
-############
-#CHANGE HERE
-############
-
 ## Line plot
 ## all species
-qq <- ggplot(data = TAB, aes(x = cell_lat, y = beta_mean, group = species)) + 
-  geom_smooth( method = lm, se = FALSE, size=0.8, col="gray") +
+sensim_df <- readRDS('Data/fit_df_tab5.rds')
+qq <- ggplot(sensim_df, aes(lat, sensim, group = factor(species))) +
+  geom_line(alpha = 0.15, size = 1.2) +
   theme_classic() +
   xlab("Latitude (Degrees)") +
   ylab("Sensitivity (Days / Day)") +
   theme(axis.title.y = element_text(size = rel(0.9), angle = 90),
         axis.title.x = element_text(size = rel(0.9), angle = 00),
-        axis.text=element_text(size=8, colour = "black")
+        axis.text=element_text(size=8, colour = "black"))
         #axis.text.y = element_text(angle=90)
-  ) 
+
 ## add species of interest on top 
 doline <- function(species){
-  arr_f <- TAB[which(TAB$species == species),]
-  qq +  geom_smooth(data = arr_f, aes(x = cell_lat, y = beta_mean),
-                    method = lm, se = FALSE, size=0.8, col="black") 
+  sensim_df_f <- dplyr::filter(sensim_df, species == species)
+  qq + geom_line(data = sensim_df_f, alpha = 0.8, size = 1.2, color = 'black')
 }
 
 
@@ -581,7 +577,7 @@ shinyApp(
                              column(3, 
                                     
                                     selectInput("cell", 
-                                                label = "Choose a cell to display (range in blue):",
+                                                label = "Choose a cell to display (range in gold):",
                                                 choices = cellnumbs$cell2,
                                                 selected = 59)
                              ),
