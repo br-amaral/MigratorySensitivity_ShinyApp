@@ -17,7 +17,7 @@ library(geosphere)
 
 ###################### Bird arrival date map - TAB 2 ###################### 
 ## load data
-arr_master <- readRDS("data_arr.RDS")
+arr_master <- readRDS("Data/data_arr.RDS")
 arr_master3 <- arr_master2 <- arr_master
 colnames(arr_master2)[7] <- c("year2")
 
@@ -34,8 +34,8 @@ picgreen <- function(year){
   return(name) 
 }
 
-##################  Sensitivuty analyses - TAB 4 ##################
-## load maps and plot formating
+##################  Sensitivity analyses - TAB 5 ##################
+## load maps and plot formatting
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
                                   group = group)) +
@@ -66,10 +66,8 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
 
 rm(worldmap)
 
-TAB <- readRDS("data_sensi.RDS")
-colnames(TAB)[1] <- "scien"
-colnames(TAB)[17] <- "species"
-load("species_Grid.RData")
+TAB <- readRDS("Data/data_sensi.RDS")
+load("Data/species_Grid.RData")
 
 ## sensitivity map
 doplot <- function(species) {
@@ -85,7 +83,6 @@ doplot <- function(species) {
   #merge hex spatial data with HM data
   to_plt <- dplyr::inner_join(arr_f, cell_grid, by = 'cell')
   
-  #pre-IAR
   pp +
     geom_polygon(data = to_plt, aes(x = long, 
                                     y = lat, group = group, 
@@ -100,6 +97,10 @@ doplot <- function(species) {
     scale_fill_viridis(option="magma",limits = c(MIN, MAX)) 
   
 }
+
+############
+#CHANGE HERE
+############
 
 ## Line plot
 ## all species
@@ -120,15 +121,9 @@ doline <- function(species){
                     method = lm, se = FALSE, size=0.8, col="black") 
 }
 
-################ Interannual variation - TAB 5 ##################
-## load data
-tt <- readRDS('arr-gr-SVC-sens-data-2020-08-25-centroids.rds')
 
-## file with the center of the species distribuition
-tt <- as.data.frame(tt$f_mrg2[,c(1,11,12)])
-colnames(tt)[1] <- c("sci_name")
+################ Interannual variation - TAB 4 ##################
 
-arr_master3 <- left_join(arr_master3,tt, by="sci_name")
 cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
                    seq(1,length(sort(unique(TAB$cell))),1)))
 colnames(cellnumbs) <- c("cell","cell2")
@@ -142,10 +137,10 @@ f1a_bird <- '#2686A0'
 ran_sp <- arr_master3 
 
 #create hex grid
-cell_grid_tab5 <- readRDS("cell_grid_tab5.rds") ## load grid - package not on CRAN
+cell_grid_tab4 <- readRDS("Data/master_cell_grid.rds") ## load grid - package not on CRAN
 
 #merge hex spatial data with HM data
-ran_sp <- left_join(ran_sp, cell_grid_tab5, by = 'cell')%>%
+ran_sp <- left_join(ran_sp, cell_grid_tab4, by = 'cell')%>%
   transmute(species,
             cell,cell2,
             cell_lat,cell_lng,
@@ -156,13 +151,13 @@ ran_sp3$species <- NA
 ran_sp3 <- distinct(ran_sp3)
 
 rr <- pp +
-  geom_polygon(data = ran_sp3, aes(x = long, y = lat),
+  geom_polygon(data = cell_grid_tab4, aes(x = long, y = lat),
   fill="white",
   inherit.aes = FALSE, alpha = 1) +
-  #geom_path(data = ran_sp3, 
-  #          aes(x = long,y = lat, group = cell), 
-  #          inherit.aes = FALSE,
-  #          color = 'black') + 
+  geom_path(data = cell_grid_tab4,
+           aes(x = long,y = lat, group = cell),
+           inherit.aes = FALSE,
+           color = 'black', alpha = 0.2) +
   annotate('text', x = ran_sp3$cell_lng, y = ran_sp3$cell_lat,
            label = ran_sp3$cell2, col = 'black', alpha = 0.9,
            size = 3)
@@ -173,7 +168,6 @@ ran_map <- function(species,cel){
   
   #ran_sp$species <- NA
   #ran_sp <- distinct(ran_sp)
-  
   #ran_sp <- rbind(ran_sp,ran_sp2)
   
   centercoor <- ran_sp2[which(ran_sp2$cell2 == cel),4:5] 
@@ -182,10 +176,10 @@ ran_map <- function(species,cel){
    rr +
     geom_path(data = ran_sp2,
               aes(x = long,y = lat, group = cell),
-              color="#00BFC4",
-              inherit.aes = FALSE, alpha = 0.4) +
+              color="goldenrod",
+              inherit.aes = FALSE, alpha = 0.8, size = 1.1) +
     geom_point(data = centercoor, aes(x = cell_lng, y = cell_lat), size = 4, 
-                 shape = 21, fill = "deepskyblue4",inherit.aes = FALSE )
+                 shape = 21, fill = "firebrick3",inherit.aes = FALSE )
 }
 
 ## Line plot
@@ -271,7 +265,9 @@ plot4 <- function(species,cel){
   
 }
 
-## Trait plot
+
+################ Mig traits - TAB 6 ##################
+
 mrg2_xi_PC <- readRDS(file="mrg2_xi_PC.rds")
 fit_df <- readRDS(file="fit_df.rds") 
 
