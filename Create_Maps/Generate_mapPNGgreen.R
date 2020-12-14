@@ -3,10 +3,11 @@ library(ggplot2)
 library(dggridR)
 library(viridis)
 
-arr_master <- readRDS("ShinyTabs/data_arr.RDS")
+arr_master <- readRDS("Data/Raw/pheno-data-2020-08-25.rds")
+gr_forest <- readRDS("Data/Raw/MidGreenup-2020-08-06-forest.rds")
 
-arr_master2 <- arr_master[complete.cases(arr_master$gr_mn),] 
-arr_master <- arr_master2
+ucell <- unique(arr_master$cell)
+gr_forest2 <- dplyr::filter(gr_forest, cell %in% ucell, year %in% 2002:2017)
 
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
@@ -32,13 +33,13 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
             alpha = 0.4, color = 'black') + 
   theme(plot.margin=grid::unit(c(0,37,0,0), "mm"))
 
-years <- sort(unique(as.character(arr_master$year)))
+years <- sort(unique(as.character(gr_forest2$year)))
 ## function that generates the map according to year and species input
 doplot <- function(PP_YEAR) {
   PP_YEAR <- as.numeric(PP_YEAR)
-  arr_f <- arr_master[which(arr_master$year == PP_YEAR),]
+  arr_f <- arr_master[which(gr_forest2$year == PP_YEAR),]
  
-  name <- paste(PP_YEAR,".png",sep="")
+  name <- paste('images/', PP_YEAR,".png",sep="")
   
   #min/max for plotting using output data
   MIN <- 80#round(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE), 1)
