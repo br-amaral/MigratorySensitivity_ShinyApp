@@ -2,9 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(dggridR)
 
-#setwd("~/Box/PhenoMismatch")
-
-arr_master <- readRDS("ShinyTabs/data_arr.RDS")
+arr_master <- readRDS("Data/Raw/pheno-data-2020-08-25.rds")
 
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
@@ -41,12 +39,15 @@ rangs <- c("bre","mig","both")
 doplot <- function(PP_YEAR, species,mod,rang) {
   PP_YEAR <- as.numeric(PP_YEAR)
   arr_f <- arr_master[which(arr_master$species == species),]
-  arr_f <- arr_f[which(arr_f$per_ovr > 0.01),]
+  arr_f <- arr_f[which(arr_f$per_ovr >= 0.05),]
   
   #min/max for plotting using output data
   MIN <- floor(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
   MAX <- ceiling(max(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
   
+  #add missing years to df
+  miss_yrs <- as.numeric(years[which(years %ni% unique(arr_f$year))])
+
   arr_f <- arr_f[which(arr_f$year == PP_YEAR),]
   
   if(rang == "bre"){ arr_f <- arr_f[which(arr_f$breed_cell==TRUE),]}
@@ -135,6 +136,10 @@ for(i in 1:length(years)){
   for(j in 1:length(spslist)){
     for(k in 1:length(mods)){
       for(l in 1:length(rangs)){
+        #i <- 1
+        #j <- 1
+        #k <- 1
+        #l <- 1
         doplot(years[i],spslist[j],mods[k],rangs[l])
       }
     }
