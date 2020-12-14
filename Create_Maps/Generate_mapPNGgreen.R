@@ -40,7 +40,7 @@ doplot <- function(PP_YEAR) {
   PP_YEAR <- as.numeric(PP_YEAR)
   arr_f <- gr_forest2[which(gr_forest2$year == PP_YEAR),]
  
-  name <- paste(PP_YEAR,".png",sep="")
+  name <- paste('images/', PP_YEAR,".png",sep="")
   
   #min/max for plotting using output data
   MIN <- 80#round(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE), 1)
