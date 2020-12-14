@@ -268,8 +268,8 @@ plot4 <- function(species,cel){
 
 ################ Mig traits - TAB 6 ##################
 
-mrg2_xi_PC <- readRDS(file="mrg2_xi_PC.rds")
-fit_df <- readRDS(file="fit_df.rds") 
+mrg2_xi_PC <- readRDS("Data/mrg2_xi_PC.rds")
+fit_df <- readRDS(file="Data/fit_df_tab6.rds") 
 
 tplo <- ggplot(mrg2_xi_PC, aes(PC1, xi_mean, group= species)) +
   geom_errorbar(aes(ymin = (xi_mean - xi_sd), 
@@ -318,7 +318,7 @@ arr_csv <- function(year, species,mod,rang){
   
   arr_master_ARR <- arr_master[which(arr_master$species == species),]
   arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$year == year),]
-  arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$per_ovr > 0.01),]
+  arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$per_ovr >= 0.05),]
   
   if(rang == "bre"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$breed_cell==TRUE),]}
   if(rang == "mig"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$mig_cell==TRUE),]}
@@ -352,25 +352,17 @@ arr_csv <- function(year, species,mod,rang){
 }
 
 ## green up data download - TAB 3
+
 green_csv <- function(year){
+
+  t_gr <- readRDS('Data/for_green-up_dl.rds')
+  gr2 <- dplyr::filter(t_gr, year == year) 
   
-  arr_master_GRE <- arr_master[which(arr_master$year == year),] 
-  
-  arr_master_GRE2 <- arr_master_GRE %>%
-    transmute(gr_mn,
-              cell_lng,
-              cell_lat
-    ) 
-  
-  arr_master_GRE2 <- distinct(arr_master_GRE2)
-  
-  colnames(arr_master_GRE2)[1] <- c("green_up_mean")
-  
-  return(arr_master_GRE2)
+  return(gr2)
   
 }
 
-## csv file for sensitivity - file is TAB 4
+## csv file for sensitivity - file is TAB 5
 sensi_csv <- function(species){
   
   TAB2 <- TAB[which(TAB$species == species),] 
@@ -390,21 +382,20 @@ sensi_csv <- function(species){
   
 }
 
-## csv file for interannual arrival variation - file is TAB 5
+## csv file for interannual arrival variation - file is TAB 4
 inter_csv <- function(species,cel){
   
-  INT <- arr_master3[which(arr_master3$species == species),] 
+  INT <- dplyr::filter(arr_master3, species == species, !is.na(arr_GAM_mean))
   
   INT2 <- INT %>%
     transmute(year, 
               cell,
               cell2,
-              cell_lng,
               cell_lat,
+              cell_lng,
               arr_IAR_mean,
-              gr_mn,
-              arr_IAR_sd
-    ) 
+              arr_IAR_sd,
+              gr_mn) 
   
   INT2 <- INT2[which(INT2$cell2 == cel),]
   
