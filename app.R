@@ -14,6 +14,7 @@ library(mapproj)
 library(robustHD)
 library("tidyverse")
 library(geosphere)
+library(shinyBS)
 
 ###################### Bird arrival date map - TAB 2 ###################### 
 ## load data
@@ -101,20 +102,25 @@ doplot <- function(species) {
 ## Line plot
 ## all species
 sensim_df <- readRDS('Data/fit_df_tab5.rds')
-qq <- ggplot(sensim_df, aes(lat, sensim, group = factor(species))) +
-  geom_line(alpha = 0.15, size = 1.2) +
+qq <- ggplot(sensim_df, aes(lat, sensim, group = species)) +
+  geom_line(
+    size = 1, col = "gray"
+    ) +
   theme_classic() +
   xlab("Latitude (Degrees)") +
   ylab("Sensitivity (Days / Day)") +
-  theme(axis.title.y = element_text(size = rel(0.9), angle = 90),
+  theme(axis.title.y = element_text(size = rel(0.9), angle = 90, margin = margin(r = 10)),
         axis.title.x = element_text(size = rel(0.9), angle = 00),
         axis.text=element_text(size=8, colour = "black")
         #axis.text.y = element_text(angle=90)
   ) 
 ## add species of interest on top 
 doline <- function(species){
-  sensim_df_f <- dplyr::filter(sensim_df, species == species)
-  qq + geom_line(data = sensim_df_f, alpha = 0.8, size = 1.2, color = 'black')
+  sensim_df_f <- sensim_df[which(sensim_df$species == species),]
+  qq + geom_line(data = sensim_df_f, 
+                 #alpha = 0.8,
+                 size = 1.1,
+                 color = 'black')
 }
 
 ################ Interannual variation - TAB 4 ##################
@@ -182,7 +188,7 @@ ran_map <- function(species,cel){
 plot4 <- function(species,cel){
   #   species <- 'Tree Swallow' ; cel <- 59  ;  cel <- 52  ;  cel <- 1
   sp1 <- arr_master3[which(arr_master3$species == species),]
-  sp1 <- sp1[complete.cases(sp1$arr_GAM_mean),]  ## remove rows with GAM mean NA
+  sp1 <- sp1[complete.cases(sp1$arr_IAR_mean),]  ## remove rows with GAM mean NA
   sp1_c <- sp1[which(sp1$cell2 == cel),]  ## only cells I want
   
   # center both arrival and green-up
@@ -277,6 +283,8 @@ plot4 <- function(species,cel){
 ################ Mig traits - TAB 6 ##################
 
 mrg2_xi_PC <- readRDS("Data/mrg2_xi_PC.rds")
+mrg2_xi_PC <- mrg2_xi_PC[,1:4]
+colnames(mrg2_xi_PC)[1] <- "species"
 fit_df <- readRDS(file="Data/fit_df_tab6.rds") 
 
 tplo <- ggplot(mrg2_xi_PC, aes(PC1, xi_mean, group= species)) +
@@ -392,7 +400,7 @@ sensi_csv <- function(species){
 ## csv file for interannual arrival variation - file is TAB 4
 inter_csv <- function(species,cel){
   
-  INT <- dplyr::filter(arr_master3, species == 'Tree Swallow')
+  INT <- dplyr::filter(arr_master3, species == species)
   na_idx <- which(is.na(INT$arr_GAM_mean))
   INT$arr_IAR_mean[na_idx] <- NA
   INT$arr_IAR_sd[na_idx] <- NA
@@ -429,7 +437,7 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
   
   options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, trigger, options)
   options = paste0("{'", paste(names(options), options, sep = "': '", collapse = "', '"), "'}")
-  bsTag <- shiny::tags$script(shiny::HTML(paste0("s
+  bsTag <- shiny::tags$script(shiny::HTML(paste0("
     $(document).ready(function() {
       setTimeout(function() {
         $('input', $('#", id, "')).each(function(){
@@ -515,7 +523,6 @@ shinyApp(
                                radioTooltip(id = "radioSelection", choice = "bre", title = "Only the portion of the species’ range where breeding (and passage migration) occurs", placement = "right", trigger = "hover"),
                                radioTooltip(id = "radioSelection", choice = "mig", title = "Only the portion fo the species’ range where migration (but not breeding) occurs", placement = "right", trigger = "hover"),
                                radioTooltip(id = "radioSelection", choice = "both", title = "Combination of all areas where the species breeds and/or migrants (but does not winter)", placement = "right", trigger = "hover"),
-                               
                                
                                ## size that this column will occupy   
                                sliderInput("year",                                   ## data that will be entered
@@ -634,8 +641,8 @@ shinyApp(
                            
                            column(4, selectInput("sps2", 
                                                  label = "Choose a species to display",
-                                                 choices = sort(unique(TAB$species)),
-                                                 selected = TAB$species[[583]])#,
+                                                 choices = sort(unique(sensim_df$species)),
+                                                 selected = sensim_df$species[[2]])#,
                                   #br(),
                            ),  
                            
@@ -715,8 +722,8 @@ shinyApp(
                                fluidRow(column(10, align="center",
                                                imageOutput("arrow") 
                                                #img(src = "pc1arrow2.png"#, 
-                                                   #height = 80, width = 800
-                                                   ))
+                                               #height = 80, width = 800
+                               ))
                              )
                            )
                            
@@ -807,7 +814,7 @@ shinyApp(
       input$sps3,
       updateSelectInput(session, "cell", "Choose a cell to display (range in gold):", 
                         choices = arr_master3$cell2[arr_master3$species==input$sps3]))
-
+    
     output$range1 <- renderPlot({
       ran_map(input$sps3,input$cell)
     })
@@ -844,20 +851,5 @@ shinyApp(
         trtab <- trait_csv(input$sps4)
         #write.csv(trtab, file)
       })
-    
-    output$arrow <- renderImage({
-      # When input$n is 1, filename is ./images/image1.jpeg
-      filename <- normalizePath(file.path('./www',
-                                          'pc1arrow2.png'))
-      
-      # Return a list containing the filename
-      list(src = filename#,
-           #height = 100,
-           #width = 600
-      )
-    }, deleteFile = FALSE)
-    
-    
-
   }
 )
