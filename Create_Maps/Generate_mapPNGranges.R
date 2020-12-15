@@ -4,7 +4,7 @@ library(dggridR)
 
 #setwd("~/Box/PhenoMismatch")
 
-arr_master <- readRDS("ShinyTabs/data_arr.RDS")
+arr_master <- readRDS("Data/data_arr.rds")
 
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
@@ -41,7 +41,7 @@ rangs <- c("bre","mig","both")
 doplot <- function(PP_YEAR, species,mod,rang) {
   PP_YEAR <- as.numeric(PP_YEAR)
   arr_f <- arr_master[which(arr_master$species == species),]
-  arr_f <- arr_f[which(arr_f$per_ovr > 0.01),]
+  arr_f <- arr_f[which(arr_f$per_ovr >= 0.05),]
   
   #min/max for plotting using output data
   MIN <- floor(min(c(arr_f$arr_GAM_mean, arr_f$arr_IAR_mean), na.rm = TRUE))
@@ -66,24 +66,33 @@ doplot <- function(PP_YEAR, species,mod,rang) {
     
     #merge hex spatial data with HM data
     to_plt <- dplyr::inner_join(arr_master, cell_grid, by = 'cell')
-    to_plt$arr_IAR_mean <- NA
-    fk <- to_plt[1,]
-    fk$arr_IAR_mean <- 100
-    fk$lat <- -10
-    fk$long <- 20
-    to_plt2 <- rbind(to_plt, fk)
+    # to_plt$arr_IAR_mean <- NA
+    # fk <- to_plt[1,]
+    # fk$arr_IAR_mean <- 100
+    # fk$lat <- -10
+    # fk$long <- 20
+    # to_plt2 <- rbind(to_plt, fk)
     
     elp <- 
       pp +
-      geom_polygon(data = to_plt2, aes(x = long, 
+      # geom_polygon(data = to_plt2, aes(x = long, 
+      #                                 y = lat, group = group, 
+      #                                 fill = arr_IAR_mean,
+      #                                 colour = "gray"
+      #   ),
+      # alpha = 0.4,
+      # colour = "gray45"#,
+      # ) +
+      # theme(plot.margin=grid::unit(c(0,0,0,0), "mm")) +
+      geom_polygon(data = to_plt, aes(x = long, 
                                       y = lat, group = group, 
-                                      fill = arr_IAR_mean,
-                                      colour = "gray"
-        ),
-      alpha = 0.4,
-      colour = "gray45"#,
-      ) +
-      theme(plot.margin=grid::unit(c(0,0,0,0), "mm")) +
+                                      fill = arr_IAR_mean
+      ),
+      alpha = 0.4) +
+      geom_path(data = to_plt, aes(x = long, 
+                                   y = lat, group = group), 
+                alpha = 0.4, color = 'black') +
+      theme(plot.margin=grid::unit(c(0,37,0,0), "mm")) +
       ## Trying to add legend to plot with only gray hexagons:
       scale_fill_gradientn(colors = c('red', 'blue'),
                            limits = c(MIN, MAX)) 

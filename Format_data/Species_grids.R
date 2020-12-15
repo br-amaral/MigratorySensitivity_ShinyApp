@@ -3,9 +3,7 @@
 
 library(dggridR)
 
-TAB <- readRDS("data_sensi.RDS")
-colnames(TAB)[1] <- "scien"
-colnames(TAB)[17] <- "species"
+TAB <- readRDS("Data/data_sensi.RDS")
 
 slist <- sort(unique(TAB$species))
 
@@ -27,3 +25,17 @@ for(i in 1:length(slist)) {
     print(species)
        
 }
+
+#master hex grid
+hexgrid6 <- dggridR::dgconstruct(res = 6)
+master_cell_grid <- dggridR::dgcellstogrid(hexgrid6, unique(TAB$cell))
+master_cell_grid$cell <- as.numeric(master_cell_grid$cell)
+saveRDS(master_cell_grid, 'Data/master_cell_grid.rds')
+
+
+#save only species cell grid objects to .RData file
+objs <- ls()
+to_rm <- objs[-grep('cell_grid_', objs)]
+rm(list = to_rm)
+save.image('Data/species_Grid.RData')
+
