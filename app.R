@@ -188,7 +188,7 @@ ran_map <- function(species,cel){
 plot4 <- function(species,cel){
   #   species <- 'Tree Swallow' ; cel <- 59  ;  cel <- 52  ;  cel <- 1
   sp1 <- arr_master3[which(arr_master3$species == species),]
-  sp1 <- sp1[complete.cases(sp1$arr_IAR_mean),]  ## remove rows with GAM mean NA
+  sp1 <- sp1[complete.cases(sp1$arr_GAM_mean),]  ## remove rows with GAM mean NA
   sp1_c <- sp1[which(sp1$cell2 == cel),]  ## only cells I want
   
   # center both arrival and green-up
