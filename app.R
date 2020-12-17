@@ -105,7 +105,7 @@ sensim_df <- readRDS('Data/fit_df_tab5.rds')
 qq <- ggplot(sensim_df, aes(lat, sensim, group = species)) +
   geom_line(
     size = 1, col = "gray"
-    ) +
+  ) +
   theme_classic() +
   xlab("Latitude (Degrees)") +
   ylab("Sensitivity (Days / Day)") +
@@ -130,6 +130,7 @@ cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
 colnames(cellnumbs) <- c("cell","cell2")
 arr_master3 <- left_join(arr_master3,cellnumbs, by="cell")
 
+
 f1a_green <- 'indianred'
 f1a_bird <- '#2686A0'
 
@@ -139,6 +140,11 @@ ran_sp <- arr_master3
 
 #create hex grid
 cell_grid_tab4 <- readRDS("Data/master_cell_grid.rds") ## load grid - package not on CRAN
+for_gr <- readRDS('Data/for_green-up_dl.rds')
+
+#add cell2 number to gr
+ncn <- unique(ran_sp[,c('cell','cell2')])
+for_gr2 <- dplyr::left_join(for_gr, ncn, by = 'cell')
 
 #merge hex spatial data with HM data
 ran_sp <- left_join(ran_sp, cell_grid_tab4, by = 'cell')%>%  
@@ -181,92 +187,66 @@ ran_map <- function(species,cel){
               color="goldenrod",
               inherit.aes = FALSE, alpha = 0.8, size = 1.1) +
     geom_point(data = centercoor, aes(x = cell_lng, y = cell_lat), size = 4, 
-               shape = 21, fill = "firebrick3",inherit.aes = FALSE )
+               shape = 21, fill = f1a_bird, inherit.aes = FALSE )
 }
 
 ## Line plot
-plot4 <- function(species,cel){
-  #   species <- 'Tree Swallow' ; cel <- 59  ;  cel <- 52  ;  cel <- 1
-  sp1 <- arr_master3[which(arr_master3$species == species),]
-  sp1 <- sp1[complete.cases(sp1$arr_GAM_mean),]  ## remove rows with GAM mean NA
-  sp1_c <- sp1[which(sp1$cell2 == cel),]  ## only cells I want
+plot4 <- function(sp,cel){
+  #sp <- 'Tree Swallow' ; cel <- 36  #;  cel <- 52  ;  cel <- 1
+  #filter bird data
+  sp1 <- dplyr::select(arr_master3,
+                       species,
+                       year,
+                       arr_GAM_mean,
+                       arr_IAR_mean,
+                       arr_IAR_sd,
+                       cell2) %>%
+    dplyr::filter(cell2 == cel,
+                  species == sp,
+                  !is.na(arr_GAM_mean))
   
-  # center both arrival and green-up
-  sp1_c$std_gr_mn <- scale(sp1_c$gr_mn, scale = FALSE)
-  sp1_c$std_arr_IAR_mean <- scale(sp1_c$arr_IAR_mean, scale = FALSE)
-  meang <- mean(sp1_c$gr_mn)
+  #filter forest data
+  for1 <- dplyr::filter(for_gr2, cell2 == cel)
   
-  sp1_c <- 
-    sp1_c %>% 
-    transmute(year,     ## select this columns
-              cell, cell_lng, cell_lat,
-              sci_name,
-              arrIAR_mean = std_arr_IAR_mean,
-              grMn_mean = std_gr_mn,
-              grMn_sd = NA,
-              arrIAR_sd = arr_IAR_sd
-    ) %>%
-    pivot_longer(-c(year,cell,sci_name, cell_lng, cell_lat),         ## repeat those (doubles to have groups)
-                 names_to=c("series", ".value"), names_sep="_") %>%  ##   for means and legends in ggplot
-    mutate(low = mean - sd,
-           high = mean + sd,
-           series = fct_recode(series,
-                               "Green Up" = "grMn",
-                               "Bird Arrival" = "arrIAR"
-           )) %>% as.data.frame()
-  
-  sp1_pt <- as.data.frame(matrix(NA,nrow=32,ncol=2))
-  sp1_pt[,1] <- as.integer(seq(2002,2017,1))
-  sp1_pt[,2] <- c(rep("Bird Arrival",16),rep("Green Up",16))
-  colnames(sp1_pt) <- c("year","series")
-  sp1_pt <- sp1_pt[order(sp1_pt$year),]
-  sp1_pt <- left_join(sp1_pt,sp1_c,by=c("year","series"))
-  
-  ## add green up data with no gam mean
-  '%!in%' <- function(x,y)!('%in%'(x,y))
-  nog <- which(seq(2002,2017,1) %!in% sort(unique(sp1_c$year))) + 2001
-  if(length(nog) > 0) {
-    allg <- arr_master3[which(arr_master3$cell2 == cel),c(7,8,13)]
-    allg$gr_mn <- allg$gr_mn - meang
-    allg <- distinct(allg[which(allg$year %in% nog),])
-    
-    for(i in 1:nrow(sp1_pt)){
-      for(j in 1:nrow(allg)){
-        if(sp1_pt$year[i] == allg$year[j] & sp1_pt$series[i] == "Green Up") {
-          sp1_pt$mean[i] <- allg$gr_mn[j]
-        }
-      }
-    }
+  #valid bird years
+  vby <- sp1$year
+  if (length(vby) < 1)
+  {
+    for1$sc_gr <- scale(for1$gr_mn, scale = FALSE)[,1]
+  } else {
+    tgr <- dplyr::filter(for1, year %in% vby)
+    mean_tgr <- mean(tgr$gr_mn)
+    for1$sc_gr <- for1$gr_mn - mean_tgr
   }
   
-  if(length(nog) == 16){
-    allg <- distinct(arr_master3[which(arr_master3$cell2 == cel),c(7,13)])
-    allg$gr_mn <- scale(allg$gr_mn, scale = FALSE) 
-    for(i in 1:nrow(sp1_pt)){
-      for(j in 1:nrow(allg)){
-        if(sp1_pt$year[i] == allg$year[j] & sp1_pt$series[i] == "Green Up") {
-          sp1_pt$mean[i] <- allg$gr_mn[j]
-        }
-      }
-    }
-    
-  }
-  ggplot(aes(x=year, y=mean, group=series, color=series), data = sp1_pt) +
-    geom_line(size = 0.8) +
-    geom_point(size = 1.8) +
+  #join gr and bird data
+  sp1_t <- dplyr::left_join(for1, sp1, by = c('cell2', 'year'))
+  sp1_t$sc_arr_IAR_mean <- scale(sp1_t$arr_IAR_mean, scale = FALSE)[,1]
+  
+  #create values for error bars
+  sp1_pt <- dplyr::mutate(sp1_t, low = sc_arr_IAR_mean - arr_IAR_sd,
+                          high = sc_arr_IAR_mean + arr_IAR_sd)
+  
+  cols <- c("Bird Arrival"= f1a_bird,"Green-up" = f1a_green)
+  ggplot(aes(x=year, y=sc_arr_IAR_mean, col = 'Bird Arrival'), #group=series, color=series), 
+         data = sp1_pt) +
+    geom_line(size = 0.8, alpha = 0.8) +
+    geom_point(size = 1.8, alpha = 0.8) +
     #geom_ribbon(aes(ymin=low, ymax=high), alpha=0.1, size=0, fill="red")
     geom_errorbar(aes(year, 
                       ymin = low, 
-                      ymax = high), 
-                  width = 0.3,# color = f1a_bird#, 
+                      ymax = high),
+                  width = 0.3, 
                   alpha = 0.7,
                   data = sp1_pt
     ) +
-    scale_color_manual(values=c(f1a_bird, f1a_green)) +
+    geom_line(aes(x=year, y=sc_gr, col = 'Green-up'), size = 0.8, alpha = 0.8) +
+    geom_point(aes(x=year, y=sc_gr, col = 'Green-up'), size = 1.8, alpha = 0.8) +
+    scale_color_manual(values = cols) +
     theme_bw() +
     xlab('Year') +
     ylab('Phenological anomaly') +
-    scale_x_continuous(breaks=seq(2002, 2017,2)) +
+    scale_x_continuous(breaks=seq(2002, 2017, 2)) +
     labs(x = "Year", 
          y = "Phenological anomaly (Days)",
          color = "Legend") +
