@@ -502,7 +502,7 @@ shinyApp(
                                
                                radioTooltip(id = "radioSelection", choice = "bre", title = "The portion of the species’ range where breeding occurs", placement = "right", trigger = "hover"),
                                radioTooltip(id = "radioSelection", choice = "mig", title = "The portion of the species’ range where migration occurs", placement = "right", trigger = "hover"),
-                               radioTooltip(id = "radioSelection", choice = "both", title = "Combination of all areas where the species breeds and/or migrants (but does not winter)", placement = "right", trigger = "hover"),
+                               radioTooltip(id = "radioSelection", choice = "both", title = "Combination of all areas where the species breeds and/or migrates (but does not winter)", placement = "right", trigger = "hover"),
                                
                                ## size that this column will occupy   
                                sliderInput("year",                                   ## data that will be entered
