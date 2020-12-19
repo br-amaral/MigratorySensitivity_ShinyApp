@@ -37,7 +37,7 @@ years <- sort(unique(as.character(gr_forest2$year)))
 ## function that generates the map according to year and species input
 doplot <- function(PP_YEAR) {
   PP_YEAR <- as.numeric(PP_YEAR)
-  arr_f <- arr_master[which(gr_forest2$year == PP_YEAR),]
+  gr_f <- dplyr::filter(gr_forest2, year == PP_YEAR)
  
   name <- paste('images/', PP_YEAR,".png",sep="")
   
@@ -47,11 +47,11 @@ doplot <- function(PP_YEAR) {
   
   #create hex grid
   hexgrid6 <- dggridR::dgconstruct(res = 6)
-  cell_grid <- dggridR::dgcellstogrid(hexgrid6, arr_f$cell)
+  cell_grid <- dggridR::dgcellstogrid(hexgrid6, gr_f$cell)
   cell_grid$cell <- as.numeric(cell_grid$cell)
   
   #merge hex spatial data with HM data
-  to_plt <- dplyr::inner_join(arr_f, cell_grid, by = 'cell')
+  to_plt <- dplyr::inner_join(gr_f, cell_grid, by = 'cell')
   
   png(name, #quality = 100, 
       width = 819, height = 664, type = "cairo",
