@@ -524,7 +524,7 @@ shinyApp(
                   ),
                   
                   ##########################################
-                  tabPanel("\-up", 
+                  tabPanel("Green-up", 
                            
                            sidebarLayout(
                              sidebarPanel(width = 4,
