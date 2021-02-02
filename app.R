@@ -11,8 +11,9 @@ library(robustHD)
 library("tidyverse")
 library(geosphere)
 library(shinyBS)
+library(zip)
 
-###################### Bird arrival date map - TAB 2 ###################### 
+##  Bird arrival date map - TAB 2 ----------------------------
 ## load data
 arr_master <- readRDS("Data/data_arr.RDS")
 arr_master3 <- arr_master2 <- arr_master
@@ -24,15 +25,15 @@ picplot <- function(year, sps, mod, rang){
   return(name) 
 }
 
-###################### green-up map - TAB 3 ###################### 
+##  Green-up map - TAB 3 ----------------------------
 ## load the picture that corresponds to this combination of this arguments
 picgreen <- function(year){
   name <- paste(year)
   return(name) 
 }
 
-##################  Sensitivity analyses - TAB 4 ##################
-## load maps and plot formatting
+##  Sensitivity analyses - TAB 4 ----------------------------
+# load maps and plot formatting
 worldmap <- ggplot2::map_data("world")
 pp <- ggplot(data = worldmap, aes(x = long, y = lat, 
                                   group = group)) +
@@ -66,7 +67,7 @@ rm(worldmap)
 TAB <- readRDS("Data/data_sensi.RDS")
 load("Data/species_Grid.RData")
 
-## sensitivity map
+# sensitivity map
 doplot <- function(species) {
   arr_f <- TAB[which(TAB$species == species),]
   
@@ -95,8 +96,8 @@ doplot <- function(species) {
   
 }
 
-## Line plot
-## all species
+# Line plot
+# all species
 sensim_df <- readRDS('Data/fit_df_tab5.rds')
 qq <- ggplot(sensim_df, aes(lat, sensim, group = species)) +
   geom_line(
@@ -110,7 +111,7 @@ qq <- ggplot(sensim_df, aes(lat, sensim, group = species)) +
         axis.text=element_text(size=8, colour = "black")
         #axis.text.y = element_text(angle=90)
   ) 
-## add species of interest on top 
+# add species of interest on top 
 doline <- function(species){
   sensim_df_f <- sensim_df[which(sensim_df$species == species),]
   qq + geom_line(data = sensim_df_f, 
@@ -119,19 +120,17 @@ doline <- function(species){
                  color = 'black')
 }
 
-################ Interannual variation - TAB 4 ##################
+##  Interannual variation - TAB 4 ----------------------------
 
 cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
                                  seq(1,length(sort(unique(TAB$cell))),1)))
 colnames(cellnumbs) <- c("cell","cell2")
 arr_master3 <- left_join(arr_master3,cellnumbs, by="cell")
 
-
 f1a_green <- 'indianred'
 f1a_bird <- '#2686A0'
 
 ## Range map
-
 ran_sp <- arr_master3 
 
 #create hex grid
@@ -256,8 +255,7 @@ plot4 <- function(sp,cel){
   
 }
 
-################ Mig traits - TAB 6 ##################
-
+##  Migratory traits - TAB 6 ----------------------------
 mrg2_xi_PC <- readRDS("Data/mrg2_xi_PC.rds")
 mrg2_xi_PC <- mrg2_xi_PC[,1:4]
 colnames(mrg2_xi_PC)[1] <- "species"
@@ -302,9 +300,9 @@ trait_plot <- function(species){
                colour = "magenta3")
 }
 
-##### Download functions:
+##  Download functions: ----------------------------
 
-## bird arrival data download - TAB 2
+#bird arrival data download - TAB 2
 
 arr_csv <- function(year, species,mod,rang){
   
@@ -343,7 +341,7 @@ arr_csv <- function(year, species,mod,rang){
   
 }
 
-## green up data download - TAB 3
+# green up data download - TAB 3
 green_csv <- function(year){
   
   t_gr <- readRDS('Data/for_green-up_dl.rds')
@@ -353,7 +351,7 @@ green_csv <- function(year){
   
 }
 
-## csv file for sensitivity - file is TAB 5
+# csv file for sensitivity - file is TAB 5
 sensi_csv <- function(species){
   
   TAB2 <- TAB[which(TAB$species == species),] 
@@ -373,7 +371,7 @@ sensi_csv <- function(species){
   
 }
 
-## csv file for interannual arrival variation - file is TAB 4
+# csv file for interannual arrival variation - file is TAB 4
 inter_csv <- function(species,cel){
   
   INT <- dplyr::filter(arr_master3, species == species)
@@ -397,18 +395,16 @@ inter_csv <- function(species,cel){
   
 }
 
-## csv file for trait plot
-
+# csv file for trait plot
 trait_csv <- function(species){
   spstab <- mrg2_xi_PC[which(mrg2_xi_PC$species == species),] %>%
     transmute(species,
               xi_mean,
               xi_sd,
               PC1)
-  
 }
 
-## Create radio tooltip to explain species distributions
+## Create radio tooltip to explain species distributions ----------------------------
 radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hover", options = NULL){
   
   options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, trigger, options)
@@ -429,14 +425,24 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
   htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
 }
 
-####
-## Build the app
+## Read-me files ----------------------------
+read_me1 <- read_me2 <- read_me3 <- read_me4 <- read_me5 <- c("Texto 
+              texto texto texto texto texto texto texto
+              texto texto texto textotexto texto texto texto
+              texto texto texto textotexto texto texto texto
+              texto texto texto texto texto texto texto texto
+              texto texto texto textotexto texto texto texto.
+              Texto texto texto texto texto texto texto texto
+              texto texto texto textotexto texto texto texto
+              texto texto texto textotexto texto texto texto
+              texto texto texto texto texto texto texto texto
+              texto texto texto textotexto texto texto texto")
 
+##  APP ----------------------------
 shinyApp(
   ui = navbarPage("Migratory Sensitivity", theme = shinytheme("flatly"),
-                  
-                  #########################################
-                  
+
+##  Introduction  ----------------------------               
                   tabPanel("Introduction",
                            h3("Data Visualization for: Migratory strategy drives species-level variation in bird sensitivity to green-up"),
                            br(),
@@ -466,7 +472,7 @@ shinyApp(
                               publication."),
                            br()),
                   
-                  ########################################                  
+        ##  ui Bird Arrival  ----------------------------                  
                   tabPanel("Bird Arrival", 
                            sidebarLayout(
                              sidebarPanel(#width = 4,
@@ -476,7 +482,7 @@ shinyApp(
                                            choices = sort(unique(arr_master$species)),     ## sps to choose from
                                            selected = arr_master$species[[3436]]),       ## which one will be selected when first launch the app
                                
-                               downloadLink('downloadData1', 'Click here to download data (inactive until publication)',class = "butt"),
+                               downloadLink('downloadData1', 'Click here to download data',class = "butt"),
                                tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")), # background color and font color
                                
                                br(),  ## blank rows between menus 
@@ -519,7 +525,7 @@ shinyApp(
                            )
                   ),
                   
-                  ##########################################
+        ##  ui Green-up  ----------------------------
                   tabPanel("Green-up", 
                            
                            sidebarLayout(
@@ -535,7 +541,7 @@ shinyApp(
                                                       animate=T,                                ## add the animation
                                                       sep = ""),
                                           
-                                          downloadLink('downloadData2', 'Click here to download data (inactive until publication)',class = "butt"),
+                                          downloadLink('downloadData2', 'Click here to download data',class = "butt"),
                                           tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")), # background color and font color
                                           
                                           br(),  ## blank rows between menus 
@@ -557,7 +563,7 @@ shinyApp(
                            )
                   ),
                   
-                  ########################################
+        ##  ui Interannual Variation  ----------------------------
                   tabPanel("Interannual Variation", 
                            #sidebarLayout(
                            # sidebarPanel(
@@ -579,7 +585,7 @@ shinyApp(
                              
                              column(3, 
                                     br(),
-                                    downloadLink('downloadData4', 'Click here to download data (inactive until publication)',class = "butt"),
+                                    downloadLink('downloadData3', 'Click here to download data',class = "butt"),
                                     tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")) # background color and font color
                              ),
                            ),
@@ -592,7 +598,7 @@ shinyApp(
                            #)
                            
                   ),
-                  ############################################                  
+        ##  ui Sensitivity Across Latitude ----------------------------      
                   tabPanel("Sensitivity Across Latitude", 
                            #sidebarLayout(
                            #   sidebarPanel(
@@ -625,8 +631,7 @@ shinyApp(
                            column(7,   
                                   br(),
                                   br(),
-                                  #downloadButton('downloadData4', "Download")
-                                  downloadLink('downloadData3', 'Click  here  to download data',class = "butt"),
+                                  downloadLink('downloadData4', 'Click  here  to download data',class = "butt"),
                                   tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")) # background color and font color)
                                   
                            ), 
@@ -657,8 +662,7 @@ shinyApp(
                            
                   ),
                   
-                  ######################################
-                  
+        ##  ui Migratory Traits  ----------------------------
                   tabPanel("Migratory Traits",
                            fluidRow(column(12,
                                            h5("Species-level sensitivity as a function of migratory traits."),
@@ -684,7 +688,7 @@ shinyApp(
                                            choices = sort(unique(mrg2_xi_PC$species)),     ## sps to choose from
                                            selected = mrg2_xi_PC$species[[34]]),       ## which one will be selected when first launch the app
                                
-                               downloadLink('downloadData5', 'Click here to download data (inactive until publication)',class = "butt"),
+                               downloadLink('downloadData5', 'Click here to download data',class = "butt"),
                                tags$head(tags$style(".butt{background-color:lightgray;} .butt{color: black;}")),
                                
                                br(),
@@ -697,23 +701,17 @@ shinyApp(
                                                plotlyOutput("plotTrait"))),
                                fluidRow(column(10, align="center",
                                                imageOutput("arrow") 
-                                               #img(src = "pc1arrow2.png"#, 
-                                               #height = 80, width = 800
                                ))
                              )
                            )
-                           
                   )
-                  
-                  ########################################  
-                  
   ),
-  
+##  SERVER  ----------------------------
   server = function(input, output, session) { 
     
-    ## arrival date TAB 2
+    ## server arrival date Tab 1 ----------------------------
     output$mapapic <- renderImage({
-      # When input$n is 1, filename is ./images/image1.jpe
+      # When input$n is 1, filename is ./images/image1.jpeg
       name <- picplot(input$year, input$sps, input$mod, input$radioSelection)
       filename <- normalizePath(file.path('./images',
                                           paste(name, '.png', sep='')))
@@ -724,22 +722,28 @@ shinyApp(
            width = 244*2.5
       )
     }, deleteFile = FALSE)
-    
+
     output$downloadData1 <- downloadHandler(
       filename = function() {
-        name1 <- sub(" ","",input$sps)  
+        name1 <- sub(" ","",input$sps)
         if(input$mod == "GAM") {
           name_part <- "_local-estimator"} else {
             name_part <- "_spatially-smooth"
           }
-        paste(input$year, name1,"_", input$rang, name_part, "_ArrivalDate.csv", sep="")
+        paste(input$year, name1,"_", input$radioSelection, name_part, "_ArrivalDate.zip", sep="")
       },
-      content = function(file) {
-        arrtab <- arr_csv(input$year, input$sps, input$mod, input$rang)
-        #write.csv(arrtab, file)
-      })
+      content = function(fname) {
+             
+        tabd1 <- arr_csv(input$year, input$sps, input$mod, input$radioSelection)
+        write.csv(tabd1, file = "data_arrival.csv")
+        write.table(read_me1, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
+        fs <- c("data_arrival.csv", "read_me.txt")
+        zip(zipfile=fname, files=fs)
+      },
+      contentType = "application/zip"
+    )    
     
-    ## green up TAB 3
+    ## server green up Tab 2 ----------------------------
     output$green <- renderImage({
       # When input$n is 1, filename is ./images/image1.jpeg
       name2 <- picgreen(input$year2)
@@ -755,37 +759,20 @@ shinyApp(
     
     output$downloadData2 <- downloadHandler(
       filename = function() {
-        paste(input$year2, "_greenup.csv", sep="")
+        paste(input$year2, "_greenup.zip", sep="")
       },
       content = function(file) {
+ 
         gretab <- green_csv(input$year2)
-        #write.csv(gretab, file)
-      })
-    
-    ## sensitibity TAB 4
-    output$distPlot <- renderPlot({
-      doplot(input$sps2)
-    })
-    
-    #  nms <- unique(TAB$species)
-    
-    output$plot <- renderPlotly({
-      p <- doline(input$sps2)
-      ggplotly(p, tooltip = c("species"))
-      
-    })
-    
-    output$downloadData3 <- downloadHandler(
-      filename = function() {
-        name3 <- sub(" ","",input$sps2)       ## remove blank space in sps name
-        paste(name3, "_sensi.csv", sep="")
+        write.csv(gretab, file = "data_greenup.csv")
+        write.table(read_me2, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
+        fs <- c("data_greenup.csv", "read_me.txt")
+        zip(zipfile=file, files=fs)
       },
-      content = function(file) {
-        sentab <- sensi_csv(input$sps2)
-        #write.csv(sentab, file)
-      })
+      contentType = "application/zip"
+      )
     
-    ## interannual arrival var
+    ## server interannual arrival var Tab 3 ----------------------------
     observeEvent(
       input$sps3,
       updateSelectInput(session, "cell", "Choose a cell to display (range in gold):", 
@@ -800,17 +787,49 @@ shinyApp(
       plot4(input$sps3,input$cell)
     })
     
-    output$downloadData4 <- downloadHandler(
+    output$downloadData3 <- downloadHandler(
       filename = function() {
         name4 <- sub(" ","",input$sps3)       ## remove blank space in sps name
-        paste(name4,input$cell, "_interan.csv", sep="")
+        paste(name4,input$cell, "_interan.zip", sep="")
       },
       content = function(file) {
         inttab <- inter_csv(input$sps3,input$cell)
-        #write.csv(inttab, file)
-      })
+        write.csv(inttab, file = "data_interan.csv")
+        write.table(read_me3, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
+        fs <- c("data_interan.csv", "read_me.txt")
+        zip(zipfile=file, files=fs)
+      },
+      contentType = "application/zip"
+    )    
+    ## server sensitivity Tab 4 ----------------------------
+    output$distPlot <- renderPlot({
+      doplot(input$sps2)
+    })
     
-    ## trait plot
+    #  nms <- unique(TAB$species)
+    
+    output$plot <- renderPlotly({
+      p <- doline(input$sps2)
+      ggplotly(p, tooltip = c("species"))
+      
+    })
+    
+    output$downloadData4 <- downloadHandler(
+      filename = function() {
+        name3 <- sub(" ","",input$sps2)       ## remove blank space in sps name
+        paste(name3, "_sensi.zip", sep="")
+      },
+      content = function(file) {
+        sentab <- sensi_csv(input$sps2)
+        write.csv(sentab, file  = "data_sensi.csv")
+        write.table(read_me4, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
+        fs <- c("data_sensi.csv", "read_me.txt")
+        zip(zipfile=file, files=fs)
+      },
+      contentType = "application/zip"
+    )
+    
+    ## server trait plot Tab 5 ----------------------------
     
     output$plotTrait <- renderPlotly({
       t <- trait_plot(input$sps4)
@@ -821,11 +840,16 @@ shinyApp(
     output$downloadData5 <- downloadHandler(
       filename = function() {
         name4 <- sub(" ","",input$sps4)       ## remove blank space in sps name
-        paste(name4, "_trait.csv", sep="")
+        paste(name4, "_trait.zip", sep="")
       },
       content = function(file) {
         trtab <- trait_csv(input$sps4)
-        #write.csv(trtab, file)
-      })
-  }
+        write.csv(trtab, file = "data_trait.csv")
+        write.table(read_me5, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
+        fs <- c("data_trait.csv", "read_me.txt")
+        zip(zipfile=file, files=fs)
+      },
+      contentType = "application/zip"
+    )  
+    }
 )
