@@ -462,7 +462,7 @@ shinyApp(
                            h5("Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, 
                                Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor,"),
                            h5("David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level 
-                              variation in bird sensitivity to green-up."),
+                              variation in bird sensitivity to vegetation green-up."),
                            br(),
                            h4(em("How to use this website:")),
                            h5("The following tabs provide data visualization and exploration of the results reported in the above
