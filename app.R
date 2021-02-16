@@ -307,9 +307,9 @@ trait_plot <- function(species){
 
 #bird arrival data download - TAB 2
 
-arr_csv <- function(year, species, mod, rang){
+arr_csv <- function(year, species1, mod, rang){
   
-  arr_master_ARR <- arr_master[which(arr_master$species == species),]
+  arr_master_ARR <- arr_master[which(arr_master$species == species1),]
   arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$year == year),]
   arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$per_ovr >= 0.05),]
   
@@ -369,9 +369,9 @@ green_csv <- function(year){
 }
 
 # csv file for sensitivity - file is TAB 5
-sensi_csv <- function(species){
+sensi_csv <- function(species1){
   
-  TAB2 <- TAB[which(TAB$species == species),] 
+  TAB2 <- TAB[which(TAB$species == species1),] 
   
   TAB3 <- TAB2 %>%
     transmute(species,
@@ -387,9 +387,11 @@ sensi_csv <- function(species){
 }
 
 # csv file for interannual arrival variation - file is TAB 4
-inter_csv <- function(species,cel){
+inter_csv <- function(species1,cel){
   
-  INT <- dplyr::filter(arr_master3, species == species & cell2 == cel)
+  INT <- arr_master3 %>% 
+    dplyr::filter(species == species1 &
+                  cell2 == cel)
   na_idx <- which(is.na(INT$arr_GAM_mean))
   INT$arr_IAR_mean[na_idx] <- NA
   INT$arr_IAR_sd[na_idx] <- NA
@@ -411,8 +413,8 @@ inter_csv <- function(species,cel){
 }
 
 # csv file for trait plot
-trait_csv <- function(species){
-  spstab <- mrg2_xi_PC[which(mrg2_xi_PC$species == species),] %>%
+trait_csv <- function(species1){
+  spstab <- mrg2_xi_PC[which(mrg2_xi_PC$species == species1),] %>%
     transmute(species,
               sci_name,
               xi_mean = round(xi_mean, 3),
