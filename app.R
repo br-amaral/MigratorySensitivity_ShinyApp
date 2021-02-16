@@ -259,6 +259,9 @@ plot4 <- function(sp,cel){
 mrg2_xi_PC <- readRDS("Data/mrg2_xi_PC.rds")
 mrg2_xi_PC <- mrg2_xi_PC[,1:4]
 colnames(mrg2_xi_PC)[1] <- "species"
+nm_key <- unique(arr_master3[,c('species', 'sci_name')])
+#join sci name
+mrg2_xi_PC <- dplyr::left_join(mrg2_xi_PC, nm_key, by = 'species')
 fit_df <- readRDS(file="Data/fit_df_tab6.rds") 
 
 tplo <- ggplot(mrg2_xi_PC, aes(PC1, xi_mean, group= species)) +
@@ -304,7 +307,7 @@ trait_plot <- function(species){
 
 #bird arrival data download - TAB 2
 
-arr_csv <- function(year, species,mod,rang){
+arr_csv <- function(year, species, mod, rang){
   
   arr_master_ARR <- arr_master[which(arr_master$species == species),]
   arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$year == year),]
@@ -315,27 +318,35 @@ arr_csv <- function(year, species,mod,rang){
   
   if(mod == "GAM"){ 
     arr_master_ARR2  <- arr_master_ARR %>%
-      transmute(arr_GAM_mean,
-                arr_GAM_sd,
+      transmute(species,
+                sci_name,
+                year,
+                cell,
+                cell_lat,
                 cell_lng,
-                cell_lat)
+                mod = mod,
+                posterior_mean = round(arr_GAM_mean, 2),
+                posterior_sd = round(arr_GAM_sd, 2))
   }
   
   if(mod == "IAR"){ 
     arr_master_ARR2  <- arr_master_ARR %>%
-      transmute(arr_IAR_mean,
-                arr_IAR_sd,
+      transmute(species,
+                sci_name,
+                year,
+                cell,
+                cell_lat,
                 cell_lng,
-                cell_lat)
+                mod = mod,
+                posterior_mean = round(arr_IAR_mean, 2),
+                posterior_sd = round(arr_IAR_sd, 2))
   }
   
   for(i in 1:nrow(arr_master_ARR2)){
-    if(is.na(arr_master_ARR2[i,1])){
-      arr_master_ARR2[i,2] <- NA
+    if(is.na(arr_master_ARR2[i,'posterior_mean'])){
+      arr_master_ARR2[i,'posterior_sd'] <- NA
     }
   }
-  
-  colnames(arr_master_ARR2)[1:2] <- c("posterior_mean","posterior_sd")
   
   return(arr_master_ARR2)
   
@@ -345,7 +356,13 @@ arr_csv <- function(year, species,mod,rang){
 green_csv <- function(year){
   
   t_gr <- readRDS('Data/for_green-up_dl.rds')
-  gr2 <- dplyr::filter(t_gr, year == year) 
+  gr2 <- dplyr::filter(t_gr, year == year) %>%
+    transmute(year,
+              cell,
+              cell_lat = round(cell_lat, 2),
+              cell_lng = round(cell_lng, 2),
+              gr_mn,
+              gr_ncell)
   
   return(gr2)
   
@@ -357,16 +374,14 @@ sensi_csv <- function(species){
   TAB2 <- TAB[which(TAB$species == species),] 
   
   TAB3 <- TAB2 %>%
-    transmute(beta_mean,
-              beta_sd,
+    transmute(species,
+              sci_name,
+              cell,
+              cell_lat,
               cell_lng,
-              cell_lat
-    ) 
-  for(i in 1:nrow(TAB3)){
-    if(is.na(TAB3[i,1])){
-      TAB3[i,2] <- NA
-    }
-  }
+              beta_mean = round(beta_mean, 3),
+              beta_sd = round(beta_sd, 3))
+  
   return(TAB3)
   
 }
@@ -374,22 +389,22 @@ sensi_csv <- function(species){
 # csv file for interannual arrival variation - file is TAB 4
 inter_csv <- function(species,cel){
   
-  INT <- dplyr::filter(arr_master3, species == species)
+  INT <- dplyr::filter(arr_master3, species == species & cell2 == cel)
   na_idx <- which(is.na(INT$arr_GAM_mean))
   INT$arr_IAR_mean[na_idx] <- NA
   INT$arr_IAR_sd[na_idx] <- NA
   
-  INT2 <- INT %>%
-    transmute(year, 
+  INT3 <- INT %>%
+    transmute(species,
+              sci_name,
+              year, 
               cell,
               cell2,
               cell_lat,
+              cell_lng,
               arr_IAR_mean,
               arr_IAR_sd,
-              gr_mn
-    ) 
-  
-  INT3 <- INT2[which(INT2$cell2 == cel),]
+              gr_mn) 
   
   return(INT3)
   
@@ -399,9 +414,10 @@ inter_csv <- function(species,cel){
 trait_csv <- function(species){
   spstab <- mrg2_xi_PC[which(mrg2_xi_PC$species == species),] %>%
     transmute(species,
-              xi_mean,
-              xi_sd,
-              PC1)
+              sci_name,
+              xi_mean = round(xi_mean, 3),
+              xi_sd = round(xi_sd, 3),
+              PC1 = round(PC1, 3))
 }
 
 ## Create radio tooltip to explain species distributions ----------------------------
@@ -425,18 +441,6 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
   htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
 }
 
-## Read-me files ----------------------------
-read_me1 <- read_me2 <- read_me3 <- read_me4 <- read_me5 <- c("Texto 
-              texto texto texto texto texto texto texto
-              texto texto texto textotexto texto texto texto
-              texto texto texto textotexto texto texto texto
-              texto texto texto texto texto texto texto texto
-              texto texto texto textotexto texto texto texto.
-              Texto texto texto texto texto texto texto texto
-              texto texto texto textotexto texto texto texto
-              texto texto texto textotexto texto texto texto
-              texto texto texto texto texto texto texto texto
-              texto texto texto textotexto texto texto texto")
 
 ##  APP ----------------------------
 shinyApp(
@@ -462,7 +466,7 @@ shinyApp(
                            h5("Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, 
                                Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor,"),
                            h5("David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level 
-                              variation in bird sensitivity to green-up."),
+                              variation in bird sensitivity to vegetation green-up."),
                            br(),
                            h4(em("How to use this website:")),
                            h5("The following tabs provide data visualization and exploration of the results reported in the above
@@ -727,17 +731,16 @@ shinyApp(
       filename = function() {
         name1 <- sub(" ","",input$sps)
         if(input$mod == "GAM") {
-          name_part <- "_local-estimator"} else {
-            name_part <- "_spatially-smooth"
+          name_part <- "_GAM"} else {
+            name_part <- "_IAR"
           }
-        paste(input$year, name1,"_", input$radioSelection, name_part, "_ArrivalDate.zip", sep="")
+        paste(name1, "_", input$year, '_', input$radioSelection, name_part, "_ArrivalDate.zip", sep="")
       },
       content = function(fname) {
              
         tabd1 <- arr_csv(input$year, input$sps, input$mod, input$radioSelection)
-        write.csv(tabd1, file = "data_arrival.csv")
-        write.table(read_me1, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
-        fs <- c("data_arrival.csv", "read_me.txt")
+        write.csv(tabd1, file = "data_arrival.csv", row.names = FALSE)
+        fs <- c("data_arrival.csv", "read_me_arrival.txt")
         zip(zipfile=fname, files=fs)
       },
       contentType = "application/zip"
@@ -759,14 +762,13 @@ shinyApp(
     
     output$downloadData2 <- downloadHandler(
       filename = function() {
-        paste(input$year2, "_greenup.zip", sep="")
+        paste("greenup_", input$year2, ".zip", sep="")
       },
       content = function(file) {
  
         gretab <- green_csv(input$year2)
-        write.csv(gretab, file = "data_greenup.csv")
-        write.table(read_me2, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
-        fs <- c("data_greenup.csv", "read_me.txt")
+        write.csv(gretab, file = "data_greenup.csv", row.names = FALSE)
+        fs <- c("data_greenup.csv", "read_me_greenup.txt")
         zip(zipfile=file, files=fs)
       },
       contentType = "application/zip"
@@ -790,13 +792,12 @@ shinyApp(
     output$downloadData3 <- downloadHandler(
       filename = function() {
         name4 <- sub(" ","",input$sps3)       ## remove blank space in sps name
-        paste(name4,input$cell, "_interan.zip", sep="")
+        paste(name4, '_', input$cell, "_interan.zip", sep="")
       },
       content = function(file) {
         inttab <- inter_csv(input$sps3,input$cell)
-        write.csv(inttab, file = "data_interan.csv")
-        write.table(read_me3, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
-        fs <- c("data_interan.csv", "read_me.txt")
+        write.csv(inttab, file = "data_interan.csv", row.names = FALSE)
+        fs <- c("data_interan.csv", "read_me_interan.txt")
         zip(zipfile=file, files=fs)
       },
       contentType = "application/zip"
@@ -821,9 +822,8 @@ shinyApp(
       },
       content = function(file) {
         sentab <- sensi_csv(input$sps2)
-        write.csv(sentab, file  = "data_sensi.csv")
-        write.table(read_me4, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
-        fs <- c("data_sensi.csv", "read_me.txt")
+        write.csv(sentab, file  = "data_sensi.csv", row.names = FALSE)
+        fs <- c("data_sensi.csv", "read_me_sensi.txt")
         zip(zipfile=file, files=fs)
       },
       contentType = "application/zip"
@@ -844,9 +844,8 @@ shinyApp(
       },
       content = function(file) {
         trtab <- trait_csv(input$sps4)
-        write.csv(trtab, file = "data_trait.csv")
-        write.table(read_me5, file = "read_me.txt", row.names = FALSE, col.names = FALSE)
-        fs <- c("data_trait.csv", "read_me.txt")
+        write.csv(trtab, file = "data_trait.csv", row.names = FALSE)
+        fs <- c("data_trait.csv", "read_me_trait.txt")
         zip(zipfile=file, files=fs)
       },
       contentType = "application/zip"
