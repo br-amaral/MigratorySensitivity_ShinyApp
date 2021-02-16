@@ -280,7 +280,7 @@ tplo <- ggplot(mrg2_xi_PC, aes(PC1, xi_mean, group= species)) +
                                group= NULL), 
             alpha = 0.6, size = 1.5) +
   xlab('Migratory Trait Score (PC 1)') +
-  ylab('Species-level Sensitivity n/      (days/day)') +
+  ylab('Species-level Sensitivity (days/day)') +
   theme_bw() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
