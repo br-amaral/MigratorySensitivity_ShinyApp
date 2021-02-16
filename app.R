@@ -397,16 +397,16 @@ inter_csv <- function(species1,cel){
   INT$arr_IAR_sd[na_idx] <- NA
   
   INT3 <- INT %>%
-    transmute(species,
-              sci_name,
-              year, 
-              cell,
-              cell2,
-              cell_lat,
-              cell_lng,
-              arr_IAR_mean,
-              arr_IAR_sd,
-              gr_mn) 
+    select(species,
+           sci_name,
+           year, 
+           cell2,
+           cell_lat,
+           cell_lng,
+           arr_IAR_mean,
+           arr_IAR_sd,
+           gr_mn) %>% 
+    rename(cell_numb = cell2)
   
   return(INT3)
   
