@@ -448,7 +448,7 @@ shinyApp(
 
 ##  Introduction  ----------------------------               
                   tabPanel("Introduction",
-                           h3("Data Visualization for: Migratory strategy drives species-level variation in bird sensitivity to green-up"),
+                           h3("Data Visualization for: Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up"),
                            br(),
                            h5("Animals and plants are shifting the timing of key life events in response to climate change, yet despite recent documentation of escalating "),
                            h5("phenological change, scientists lack a full understanding of how and why phenological responses vary across space and among species. "),
