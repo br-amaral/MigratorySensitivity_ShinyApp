@@ -121,12 +121,6 @@ doline <- function(species){
 }
 
 ##  Interannual variation - TAB 4 ----------------------------
-
-cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
-                                 seq(1,length(sort(unique(TAB$cell))),1)))
-colnames(cellnumbs) <- c("cell","cell2")
-arr_master3 <- left_join(arr_master3,cellnumbs, by="cell")
-
 f1a_green <- 'indianred'
 f1a_bird <- '#2686A0'
 
@@ -137,14 +131,12 @@ ran_sp <- arr_master3
 cell_grid_tab4 <- readRDS("Data/master_cell_grid.rds") ## load grid - package not on CRAN
 for_gr <- readRDS('Data/for_green-up_dl.rds')
 
-#add cell2 number to gr
-ncn <- unique(ran_sp[,c('cell','cell2')])
-for_gr2 <- dplyr::left_join(for_gr, ncn, by = 'cell')
+for_gr2 <- for_gr
 
 #merge hex spatial data with HM data
 ran_sp <- left_join(ran_sp, cell_grid_tab4, by = 'cell')%>%  
   transmute(species,
-            cell,cell2,
+            cell,
             cell_lat,cell_lng,
             lat,long)
 
@@ -161,7 +153,7 @@ rr <- pp +
             inherit.aes = FALSE,
             color = 'black', alpha = 0.2) +
   annotate('text', x = ran_sp3$cell_lng, y = ran_sp3$cell_lat,
-           label = ran_sp3$cell2, col = 'black', alpha = 0.9,
+           label = ran_sp3$cell, col = 'black', alpha = 0.9,
            size = 3)
 
 ran_map <- function(species,cel){
@@ -173,7 +165,7 @@ ran_map <- function(species,cel){
   
   #ran_sp <- rbind(ran_sp,ran_sp2)
   
-  centercoor <- ran_sp2[which(ran_sp2$cell2 == cel),4:5] 
+  centercoor <- ran_sp2[which(ran_sp2$cell == cel),3:4] 
   centercoor <-  centercoor[1,]
   
   rr +
@@ -195,13 +187,13 @@ plot4 <- function(sp,cel){
                        arr_GAM_mean,
                        arr_IAR_mean,
                        arr_IAR_sd,
-                       cell2) %>%
-    dplyr::filter(cell2 == cel,
+                       cell) %>%
+    dplyr::filter(cell == cel,
                   species == sp,
                   !is.na(arr_GAM_mean))
   
   #filter forest data
-  for1 <- dplyr::filter(for_gr2, cell2 == cel)
+  for1 <- dplyr::filter(for_gr2, cell == cel)
   
   #valid bird years
   vby <- sp1$year
@@ -215,7 +207,7 @@ plot4 <- function(sp,cel){
   }
   
   #join gr and bird data
-  sp1_t <- dplyr::left_join(for1, sp1, by = c('cell2', 'year'))
+  sp1_t <- dplyr::left_join(for1, sp1, by = c('cell', 'year'))
   sp1_t$sc_arr_IAR_mean <- scale(sp1_t$arr_IAR_mean, scale = FALSE)[,1]
   
   #create values for error bars
@@ -391,7 +383,7 @@ inter_csv <- function(species1,cel){
   
   INT <- arr_master3 %>% 
     dplyr::filter(species == species1 &
-                  cell2 == cel)
+                  cell == cel)
   na_idx <- which(is.na(INT$arr_GAM_mean))
   INT$arr_IAR_mean[na_idx] <- NA
   INT$arr_IAR_sd[na_idx] <- NA
@@ -400,13 +392,12 @@ inter_csv <- function(species1,cel){
     select(species,
            sci_name,
            year, 
-           cell2,
+           cell,
            cell_lat,
            cell_lng,
            arr_IAR_mean,
            arr_IAR_sd,
-           gr_mn) %>% 
-    rename(cell_numb = cell2)
+           gr_mn)
   
   return(INT3)
   
@@ -780,7 +771,7 @@ shinyApp(
     observeEvent(
       input$sps3,
       updateSelectInput(session, "cell", "Choose a cell to display (range in gold):", 
-                        choices = arr_master3$cell2[arr_master3$species==input$sps3]))
+                        choices = arr_master3$cell[arr_master3$species==input$sps3]))
     
     output$range1 <- renderPlot({
       ran_map(input$sps3,input$cell)
