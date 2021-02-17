@@ -3,7 +3,7 @@ library(ggplot2)
 library(dggridR)
 library(viridis)
 
-arr_master <- readRDS("Data/Raw/pheno-data-2020-08-25.rds")
+arr_master <- readRDS("Data/data_arr.rds")
 gr_forest <- readRDS("Data/Raw/MidGreenup-2020-08-06-forest.rds")
 
 ucell <- unique(arr_master$cell)
@@ -69,10 +69,6 @@ doplot <- function(PP_YEAR) {
       theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
     
   print(PP_YEAR)
-  ggsave(filename = name, plot = yrp#,
-         #height = 2.865#, width = 3.896667,
-         #scale = 0.7
-         )
   
   dev.off()
 }
@@ -80,9 +76,3 @@ doplot <- function(PP_YEAR) {
 for(i in 1:length(years)){
       doplot(years[i])
 }
-
-
-#[1] 2002
-#[1] "Oreothlypis_ruficapilla"
-#[1] 2002
-#[1] "Setophaga_caerulescens"

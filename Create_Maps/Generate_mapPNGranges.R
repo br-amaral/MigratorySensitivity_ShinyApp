@@ -2,8 +2,6 @@ library(dplyr)
 library(ggplot2)
 library(dggridR)
 
-#setwd("~/Box/PhenoMismatch")
-
 arr_master <- readRDS("Data/data_arr.rds")
 
 worldmap <- ggplot2::map_data("world")
@@ -57,9 +55,6 @@ doplot <- function(PP_YEAR, species,mod,rang) {
     paste(".png",sep="")
   
   if(dim(arr_f)[1]==0) {  ## no data
-    png(name,# quality = 100,
-        width = 819, height = 664, type = "cairo",
-        res = 100)
     hexgrid6 <- dggridR::dgconstruct(res = 6)
     cell_grid <- dggridR::dgcellstogrid(hexgrid6, arr_master$cell)
     cell_grid$cell <- as.numeric(cell_grid$cell)
@@ -108,10 +103,6 @@ doplot <- function(PP_YEAR, species,mod,rang) {
     #merge hex spatial data with HM data
     to_plt <- dplyr::inner_join(arr_f, cell_grid, by = 'cell')
     
-    png(name, #quality = 100, 
-        width = 819, height = 664, type = "cairo",
-        res = 100)
-    
     if(mod == "IAR") { elp <- 
       pp +
       geom_polygon(data = to_plt, aes(x = long, 
@@ -139,7 +130,6 @@ doplot <- function(PP_YEAR, species,mod,rang) {
            #scale = 0.7
     )
   }
-  dev.off()
 }
 
 ## 
