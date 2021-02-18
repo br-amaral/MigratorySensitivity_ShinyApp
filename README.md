@@ -8,7 +8,7 @@ This online app can be found at the following link at the time of the paper's pu
 
 https://migratory-sensitivity.shinyapps.io/MigSen-app
 
-Code and data to produce this app are archive on Zenodo:
+Code and data to produce this app are archived on Zenodo:
 
 XXXX
 
@@ -35,7 +35,7 @@ File Descriptions
 
 - **read_me_trait.txt** - read me file for species traits data
 
-- **Data/** (ignored) - folder with data to run the shiny app
+- **Data/** (ignored) - folder with data to run the Shiny app
    - **data_arr.rds** - species arrival data.frame
    - **data_sensi.rds** - species spatial sensitivity data.frame
    - **fit_df_tab5.rds** - species sensitivity to latitude data.frame
@@ -45,9 +45,9 @@ File Descriptions
    - **MidGreenup-2020-08-06-forest.rds** - green-up data data.frame to create green-up maps
    - **mrg2_xi_PC.rds** - species migratory traits data.frame
    - **species_Grid.RData** - hexagon grid for each species for their distribution range
-- **images/** - folder with plots of vegetation green up for all years, and plots of bird arrival for all combinations of species, year, model type and range.
+- **images/** (ignored) - folder with plots of vegetation green-up for all years, and plots of bird arrival for all combinations of species, year, model type and range.
 - **Create_Maps/** - code to create maps displayed in app
-	- **Generate_mapPNGgreen.R** - script to create plots for vegetation green up in different years (output is in ‘MigSen_app/images’)
+	- **Generate_mapPNGgreen.R** - script to create plots for vegetation green-up in different years (output is in ‘MigSen_app/images’)
 	- **Generate_mapPNGranges.R** - script to create plots for bird arrival for different species, years, models and range (output is in ‘MigSen_app>Images’)
 
 

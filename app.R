@@ -389,14 +389,14 @@ inter_csv <- function(species1,cel){
   INT$arr_IAR_sd[na_idx] <- NA
   
   INT3 <- INT %>%
-    select(species,
+    transmute(species,
            sci_name,
            year, 
            cell,
            cell_lat,
            cell_lng,
-           arr_IAR_mean,
-           arr_IAR_sd,
+           arr_IAR_mean = round(arr_IAR_mean, 2),
+           arr_IAR_sd = round(arr_IAR_sd, 2),
            gr_mn)
   
   return(INT3)
