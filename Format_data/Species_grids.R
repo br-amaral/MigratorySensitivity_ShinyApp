@@ -4,6 +4,11 @@
 library(dggridR)
 
 TAB <- readRDS("Data/data_sensi.RDS")
+cellnumbs <- as.data.frame(cbind(sort(unique(TAB$cell)),
+                                 seq(1,length(sort(unique(TAB$cell))),1)))
+colnames(cellnumbs) <- c("cell","cell2")
+
+TAB <- left_join(TAB,cellnumbs, by="cell")
 
 slist <- sort(unique(TAB$species))
 
@@ -17,6 +22,9 @@ for(i in 1:length(slist)) {
     hexgrid6 <- dggridR::dgconstruct(res = 6)
     cell_grid <- dggridR::dgcellstogrid(hexgrid6, arr_f$cell)
     cell_grid$cell <- as.numeric(cell_grid$cell)
+    cell_grid <- left_join(cell_grid, cellnumbs, by = "cell") %>% 
+      select(-cell) %>% 
+      rename(cell = cell2)
     
     name <- paste('cell_grid',species,sep="_")
  
@@ -30,6 +38,10 @@ for(i in 1:length(slist)) {
 hexgrid6 <- dggridR::dgconstruct(res = 6)
 master_cell_grid <- dggridR::dgcellstogrid(hexgrid6, unique(TAB$cell))
 master_cell_grid$cell <- as.numeric(master_cell_grid$cell)
+master_cell_grid <- left_join(master_cell_grid, cellnumbs, by = "cell") %>% 
+  select(-cell) %>% 
+  rename(cell = cell2)
+
 saveRDS(master_cell_grid, 'Data/master_cell_grid.rds')
 
 
