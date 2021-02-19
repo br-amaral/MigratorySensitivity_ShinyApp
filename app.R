@@ -16,8 +16,17 @@ library(zip)
 ##  Bird arrival date map - TAB 2 ----------------------------
 ## load data
 arr_master <- readRDS("Data/data_arr.RDS")
+
+cellnumbs <- as.data.frame(cbind(sort(unique(arr_master$cell)),
+                                 seq(1,length(sort(unique(arr_master$cell))),1)))
+colnames(cellnumbs) <- c("cell","cell2")
+arr_master <- left_join(arr_master,cellnumbs, by="cell") %>% 
+  select(-cell) %>% 
+  rename(cell = cell2)
+
 arr_master3 <- arr_master2 <- arr_master
-colnames(arr_master2)[7] <- c("year2")
+arr_master2 <- arr_master2 %>% 
+  rename(year2 = year)
 
 ## load the picture that corresponds to this combination of this arguments
 picplot <- function(year, sps, mod, rang){
@@ -65,6 +74,10 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
 rm(worldmap)
 
 TAB <- readRDS("Data/data_sensi.RDS")
+TAB <- left_join(TAB,cellnumbs, by="cell") %>% 
+  select(-cell) %>% 
+  rename(cell = cell2)
+  
 load("Data/species_Grid.RData")
 
 # sensitivity map
@@ -76,7 +89,7 @@ doplot <- function(species) {
   MAX <- round((ceiling((max(arr_f$beta_mean, na.rm = TRUE))*10)/10), 1)
   
   # get hex grid for species
-  cell_grid <- get(paste('cell_grid',species,sep="_"))
+  cell_grid <- get(paste('cell_grid', species, sep="_")) 
   
   #merge hex spatial data with HM data
   to_plt <- dplyr::inner_join(arr_f, cell_grid, by = 'cell')
@@ -89,9 +102,6 @@ doplot <- function(species) {
                                  y = lat, group = group), 
               #alpha = 0.4, 
               color = 'black') + 
-    ## Casey's colors
-    #scale_fill_gradient2(low = '#C7522B', mid = '#FBF2C4', high = '#3C5941',
-    #                     limits = c(MIN, MAX), midpoint = 0)+ 
     scale_fill_viridis(option="magma",limits = c(MIN, MAX)) 
   
 }
@@ -131,7 +141,9 @@ ran_sp <- arr_master3
 cell_grid_tab4 <- readRDS("Data/master_cell_grid.rds") ## load grid - package not on CRAN
 for_gr <- readRDS('Data/for_green-up_dl.rds')
 
-for_gr2 <- for_gr
+for_gr2 <- left_join(for_gr, cellnumbs, by="cell") %>% 
+  select(-cell) %>% 
+  rename(cell = cell2)
 
 #merge hex spatial data with HM data
 ran_sp <- left_join(ran_sp, cell_grid_tab4, by = 'cell')%>%  
@@ -156,16 +168,11 @@ rr <- pp +
            label = ran_sp3$cell, col = 'black', alpha = 0.9,
            size = 3)
 
-ran_map <- function(species,cel){
+ran_map <- function(species,cell){
   
   ran_sp2 <- ran_sp[which(ran_sp == species),]
   
-  #ran_sp$species <- NA
-  #ran_sp <- distinct(ran_sp)
-  
-  #ran_sp <- rbind(ran_sp,ran_sp2)
-  
-  centercoor <- ran_sp2[which(ran_sp2$cell == cel),3:4] 
+  centercoor <- ran_sp2[which(ran_sp2$cell == cell),3:4] 
   centercoor <-  centercoor[1,]
   
   rr +
@@ -348,6 +355,10 @@ arr_csv <- function(year, species1, mod, rang){
 green_csv <- function(year){
   
   t_gr <- readRDS('Data/for_green-up_dl.rds')
+  t_gr <- left_join(t_gr, cellnumbs, by="cell") %>% 
+    select(-cell) %>% 
+    rename(cell = cell2)
+  
   gr2 <- dplyr::filter(t_gr, year == year) %>%
     transmute(year,
               cell,
