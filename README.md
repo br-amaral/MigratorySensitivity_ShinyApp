@@ -10,7 +10,7 @@ https://migratory-sensitivity.shinyapps.io/MigSen-app
 
 Code and data to produce this app are archived on Zenodo:
 
-XXXX
+http://doi.org/10.5281/zenodo.4549910
 
 
 Background
