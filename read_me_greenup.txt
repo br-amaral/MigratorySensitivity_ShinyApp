@@ -1,12 +1,12 @@
 README
 ======
 
-Thank you for your interest in this data product. Any use of this data should be cited as:
+Thank you for your interest in this data product. Any use of these data should be cited as:
 
 Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor, David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up.
 
 
-Greenup data were derived from the MCD12Q2 (https://lpdaac.usgs.gov/products/mcd12q2v006/) and MCD12Q1 (https://lpdaac.usgs.gov/products/mcd12q1v006/) data products and should be cited as:
+Green-up data were derived from the MCD12Q2 (https://lpdaac.usgs.gov/products/mcd12q2v006/) and MCD12Q1 (https://lpdaac.usgs.gov/products/mcd12q1v006/) data products and should be cited as:
 
 Friedl, M., Gray, J., Sulla-Menashe, D. 2019. MCD12Q2 MODIS/Terra+Aqua Land Cover Dynamics Yearly L3 Global 500m SIN Grid V006 [Data set]. NASA EOSDIS Land Processes DAAC.
 

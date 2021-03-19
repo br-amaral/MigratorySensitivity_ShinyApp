@@ -1,7 +1,7 @@
 README
 ======
 
-Thank you for your interest in this data product. Any use of this data should be cited as:
+Thank you for your interest in this data product. Any use of these data should be cited as:
 
 Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor, David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up.
 
@@ -11,7 +11,7 @@ Data used to derive these arrival estimates come from eBird, which should be cit
 Sullivan, B.L., C.L. Wood, M.J. Iliff, R.E. Bonney, D. Fink, and S. Kelling. 2009. eBird: a citizen-based bird observation network in the biological sciences. Biological Conservation 142: 2282-2292.
 
 
-Greenup data were derived from the MCD12Q2 (https://lpdaac.usgs.gov/products/mcd12q2v006/) and MCD12Q1 (https://lpdaac.usgs.gov/products/mcd12q1v006/) data products and should be cited as:
+Green-up data were derived from the MCD12Q2 (https://lpdaac.usgs.gov/products/mcd12q2v006/) and MCD12Q1 (https://lpdaac.usgs.gov/products/mcd12q1v006/) data products and should be cited as:
 
 Friedl, M., Gray, J., Sulla-Menashe, D. 2019. MCD12Q2 MODIS/Terra+Aqua Land Cover Dynamics Yearly L3 Global 500m SIN Grid V006 [Data set]. NASA EOSDIS Land Processes DAAC.
 
@@ -41,7 +41,7 @@ THESE TERMS AND CONDITIONS OF USE (the “Terms”) ARE A LEGAL AND BINDING AGRE
     *eBird data will only be used in a bird finding tool to show sightings from eBird.
     *eBird data may not be used in tools that assist users in bird identification using regional and temporal abundance information.
     *The Cornell Lab of Ornithology will update the eBird data available at any time.
-    *The users of eBird data will provide a full and appropriate acknowledgement and citation in any materials or publications derived in part or in whole from the data; relevant citation details are provided with each dataset. For any publication making substantial use of the eBird data, the Cornell Lab of Ornithology welcomes opportunities for commenting on the work prior to publication, for collaboration, and for co-authorship if we contribute substantial intellectual input in a publication. Expressions of interest can be sent to ebird@cornell.edu.
+    *The users of eBird data will provide a full and appropriate acknowledgment and citation in any materials or publications derived in part or in whole from the data; relevant citation details are provided with each dataset. For any publication making substantial use of the eBird data, the Cornell Lab of Ornithology welcomes opportunities for commenting on the work prior to publication, for collaboration, and for co-authorship if we contribute substantial intellectual input in a publication. Expressions of interest can be sent to ebird@cornell.edu.
     *Reproduction of any eBird data or any products derived from it, either whole or in part, for commercial purposes is prohibited without prior written permission of the Cornell Lab of Ornithology. For the purposes of these Terms of Use, “commercial purposes” means: a) any use by, on behalf of, or to inform or assist the activities of, a commercial entity (an entity that operates ‘for profit’); or b) use by any non-profit entity for the purposes of revenue generation. If you require permission please contact the Cornell Lab of Ornithology via email to ebird@cornell.edu.
     *The recipient will only use the eBird data provided for the purpose for which it was requested. If subsequent or different use is required the recipient must contact the Cornell Lab of Ornithology again for written approval.
     *The recipient will not pass the original datasets on to any third parties and will direct all such thirds parties’ requests for use of eBird data back to the Cornell Lab of Ornithology.
