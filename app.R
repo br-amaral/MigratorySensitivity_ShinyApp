@@ -306,11 +306,11 @@ trait_plot <- function(species){
 
 #bird arrival data download - TAB 2
 
-arr_csv <- function(year, species1, mod, rang){
+arr_csv <- function(species1, mod, rang){
   
-  arr_master_ARR <- arr_master[which(arr_master$species == species1),]
-  arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$year == year),]
-  arr_master_ARR  <- arr_master_ARR [which(arr_master_ARR$per_ovr >= 0.05),]
+  arr_master_ARR <- dplyr::filter(arr_master, 
+                                  species == species1,
+                                  per_ovr >= 0.05)
   
   if(rang == "bre"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$breed_cell==TRUE),]}
   if(rang == "mig"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$mig_cell==TRUE),]}
@@ -352,14 +352,12 @@ arr_csv <- function(year, species1, mod, rang){
 }
 
 # green up data download - TAB 3
-green_csv <- function(year){
+green_csv <- function(){
   
   t_gr <- readRDS('Data/for_green-up_dl.rds')
-  t_gr <- left_join(t_gr, cellnumbs, by="cell") %>% 
+  gr2 <- left_join(t_gr, cellnumbs, by = "cell") %>% 
     select(-cell) %>% 
-    rename(cell = cell2)
-  
-  gr2 <- dplyr::filter(t_gr, year == year) %>%
+    rename(cell = cell2) %>%
     transmute(year,
               cell,
               cell_lat = round(cell_lat, 2),
@@ -415,8 +413,8 @@ inter_csv <- function(species1,cel){
 }
 
 # csv file for trait plot
-trait_csv <- function(species1){
-  spstab <- mrg2_xi_PC[which(mrg2_xi_PC$species == species1),] %>%
+trait_csv <- function(){
+  spstab <- mrg2_xi_PC %>%
     transmute(species,
               sci_name,
               xi_mean = round(xi_mean, 3),
@@ -738,14 +736,14 @@ shinyApp(
           name_part <- "_GAM"} else {
             name_part <- "_IAR"
           }
-        paste(name1, "_", input$year, '_', input$radioSelection, name_part, "_ArrivalDate.zip", sep="")
+        paste(name1, '_', input$radioSelection, name_part, "_ArrivalDate.zip", sep="")
       },
       content = function(fname) {
              
-        tabd1 <- arr_csv(input$year, input$sps, input$mod, input$radioSelection)
+        tabd1 <- arr_csv(input$sps, input$mod, input$radioSelection)
         write.csv(tabd1, file = "data_arrival.csv", row.names = FALSE)
         fs <- c("data_arrival.csv", "read_me_arrival.txt")
-        zip(zipfile=fname, files=fs)
+        zip(zipfile = fname, files = fs)
       },
       contentType = "application/zip"
     )    
@@ -766,14 +764,14 @@ shinyApp(
     
     output$downloadData2 <- downloadHandler(
       filename = function() {
-        paste("greenup_", input$year2, ".zip", sep="")
+        "greenup.zip"
       },
       content = function(file) {
  
-        gretab <- green_csv(input$year2)
+        gretab <- green_csv()
         write.csv(gretab, file = "data_greenup.csv", row.names = FALSE)
         fs <- c("data_greenup.csv", "read_me_greenup.txt")
-        zip(zipfile=file, files=fs)
+        zip(zipfile = file, files = fs)
       },
       contentType = "application/zip"
       )
@@ -802,7 +800,7 @@ shinyApp(
         inttab <- inter_csv(input$sps3,input$cell)
         write.csv(inttab, file = "data_interan.csv", row.names = FALSE)
         fs <- c("data_interan.csv", "read_me_interan.txt")
-        zip(zipfile=file, files=fs)
+        zip(zipfile = file, files = fs)
       },
       contentType = "application/zip"
     )    
@@ -822,13 +820,13 @@ shinyApp(
     output$downloadData4 <- downloadHandler(
       filename = function() {
         name3 <- sub(" ","",input$sps2)       ## remove blank space in sps name
-        paste(name3, "_sensi.zip", sep="")
+        paste(name3, "_sensi.zip", sep = "")
       },
       content = function(file) {
         sentab <- sensi_csv(input$sps2)
         write.csv(sentab, file  = "data_sensi.csv", row.names = FALSE)
         fs <- c("data_sensi.csv", "read_me_sensi.txt")
-        zip(zipfile=file, files=fs)
+        zip(zipfile = file, files = fs)
       },
       contentType = "application/zip"
     )
@@ -843,14 +841,13 @@ shinyApp(
     
     output$downloadData5 <- downloadHandler(
       filename = function() {
-        name4 <- sub(" ","",input$sps4)       ## remove blank space in sps name
-        paste(name4, "_trait.zip", sep="")
+        'traits.zip'
       },
       content = function(file) {
-        trtab <- trait_csv(input$sps4)
+        trtab <- trait_csv()
         write.csv(trtab, file = "data_trait.csv", row.names = FALSE)
         fs <- c("data_trait.csv", "read_me_trait.txt")
-        zip(zipfile=file, files=fs)
+        zip(zipfile = file, files = fs)
       },
       contentType = "application/zip"
     )  
