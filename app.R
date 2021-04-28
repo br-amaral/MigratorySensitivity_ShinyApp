@@ -77,7 +77,7 @@ TAB <- readRDS("Data/data_sensi.RDS")
 TAB <- left_join(TAB,cellnumbs, by="cell") %>% 
   select(-cell) %>% 
   rename(cell = cell2)
-  
+
 load("Data/species_Grid.RData")
 
 # sensitivity map
@@ -392,21 +392,21 @@ inter_csv <- function(species1,cel){
   
   INT <- arr_master3 %>% 
     dplyr::filter(species == species1 &
-                  cell == cel)
+                    cell == cel)
   na_idx <- which(is.na(INT$arr_GAM_mean))
   INT$arr_IAR_mean[na_idx] <- NA
   INT$arr_IAR_sd[na_idx] <- NA
   
   INT3 <- INT %>%
     transmute(species,
-           sci_name,
-           year, 
-           cell,
-           cell_lat,
-           cell_lng,
-           arr_IAR_mean = round(arr_IAR_mean, 2),
-           arr_IAR_sd = round(arr_IAR_sd, 2),
-           gr_mn)
+              sci_name,
+              year, 
+              cell,
+              cell_lat,
+              cell_lng,
+              arr_IAR_mean = round(arr_IAR_mean, 2),
+              arr_IAR_sd = round(arr_IAR_sd, 2),
+              gr_mn)
   
   return(INT3)
   
@@ -447,8 +447,8 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
 ##  APP ----------------------------
 shinyApp(
   ui = navbarPage("Migratory Sensitivity", theme = shinytheme("flatly"),
-
-##  Introduction  ----------------------------               
+                  
+                  ##  Introduction  ----------------------------               
                   tabPanel("Introduction",
                            h3("Data Visualization for: Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up"),
                            br(),
@@ -465,10 +465,11 @@ shinyApp(
                            h5("over the last several decades. "),
                            br(),
                            h4(em("Citation:")),
-                           h5("Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, 
-                               Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor,"),
-                           h5("David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level 
-                              variation in bird sensitivity to vegetation green-up."),
+                           h5("Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor,"),
+                           h5("David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up. "
+                           ),
+                           #h5("Nature Ecology and Evolution.",
+                           uiOutput("tab"),
                            br(),
                            h4(em("How to use this website:")),
                            h5("The following tabs provide data visualization and exploration of the results reported in the above
@@ -478,7 +479,7 @@ shinyApp(
                               publication."),
                            br()),
                   
-        ##  ui Bird Arrival  ----------------------------                  
+                  ##  ui Bird Arrival  ----------------------------                  
                   tabPanel("Bird Arrival", 
                            sidebarLayout(
                              sidebarPanel(#width = 4,
@@ -531,7 +532,7 @@ shinyApp(
                            )
                   ),
                   
-        ##  ui Green-up  ----------------------------
+                  ##  ui Green-up  ----------------------------
                   tabPanel("Green-up", 
                            
                            sidebarLayout(
@@ -559,8 +560,8 @@ shinyApp(
                                   Values shown are within-cell averages of 'midgreen-up' dates, for all pixels classified as 
                                   forest, according to the MODIS Land Cover Type (MCD12Q1) Version 6 data product
                                   (https://lpdaac.usgs.gov/products/mcd12q1v006/).",style = "font-size:12px;")
-                                          
-                                          #)
+                                  
+                                  #)
                              ),
                              mainPanel(
                                imageOutput("green") #,
@@ -569,7 +570,7 @@ shinyApp(
                            )
                   ),
                   
-        ##  ui Interannual Variation  ----------------------------
+                  ##  ui Interannual Variation  ----------------------------
                   tabPanel("Interannual Variation", 
                            #sidebarLayout(
                            # sidebarPanel(
@@ -604,7 +605,7 @@ shinyApp(
                            #)
                            
                   ),
-        ##  ui Sensitivity Across Latitude ----------------------------      
+                  ##  ui Sensitivity Across Latitude ----------------------------      
                   tabPanel("Sensitivity Across Latitude", 
                            #sidebarLayout(
                            #   sidebarPanel(
@@ -668,7 +669,7 @@ shinyApp(
                            
                   ),
                   
-        ##  ui Migratory Traits  ----------------------------
+                  ##  ui Migratory Traits  ----------------------------
                   tabPanel("Migratory Traits",
                            fluidRow(column(12,
                                            h5("Species-level sensitivity as a function of migratory traits."),
@@ -712,8 +713,12 @@ shinyApp(
                            )
                   )
   ),
-##  SERVER  ----------------------------
+  ##  SERVER  ----------------------------
   server = function(input, output, session) { 
+    ## link to paper
+    url <- a("DOI:10.1038/s41559-021-01442-y.", href="https://dx.doi.org/10.1038/s41559-021-01442-y")
+    output$tab <- renderUI({
+      tagList("Nature Ecology and Evolution. ", url)})
     
     ## server arrival date Tab 1 ----------------------------
     output$mapapic <- renderImage({
@@ -728,7 +733,7 @@ shinyApp(
            width = 244*2.5
       )
     }, deleteFile = FALSE)
-
+    
     output$downloadData1 <- downloadHandler(
       filename = function() {
         name1 <- sub(" ","",input$sps)
@@ -739,7 +744,7 @@ shinyApp(
         paste(name1, '_', input$radioSelection, name_part, "_ArrivalDate.zip", sep="")
       },
       content = function(fname) {
-             
+        
         tabd1 <- arr_csv(input$sps, input$mod, input$radioSelection)
         write.csv(tabd1, file = "data_arrival.csv", row.names = FALSE)
         fs <- c("data_arrival.csv", "read_me_arrival.txt")
@@ -767,14 +772,14 @@ shinyApp(
         "greenup.zip"
       },
       content = function(file) {
- 
+        
         gretab <- green_csv()
         write.csv(gretab, file = "data_greenup.csv", row.names = FALSE)
         fs <- c("data_greenup.csv", "read_me_greenup.txt")
         zip(zipfile = file, files = fs)
       },
       contentType = "application/zip"
-      )
+    )
     
     ## server interannual arrival var Tab 3 ----------------------------
     observeEvent(
@@ -856,7 +861,7 @@ shinyApp(
       # When input$n is 1, filename is ./images/image1.jpeg
       filename <- normalizePath(file.path('./www',
                                           'pc1arrow2.png'))
-
+      
       # Return a list containing the filename
       list(src = filename#,
            #height = 100,
@@ -864,5 +869,5 @@ shinyApp(
       )
     }, deleteFile = FALSE)
     
-    }
+  }
 )
