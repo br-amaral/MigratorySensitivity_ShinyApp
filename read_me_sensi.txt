@@ -3,8 +3,7 @@ README
 
 Thank you for your interest in this data product. Any use of these data should be cited as:
 
-Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor, David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up.
-
+Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor, David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up. Nature Ecology and Evolution. DOI:10.1038/s41559-021-01442-y.
 
 Data used to derive these sensitivity estimates come from eBird, which should be cited as:
 
