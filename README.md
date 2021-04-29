@@ -4,6 +4,10 @@ This repository contains code to create the interactive Shiny app associated wit
 
 Casey Youngflesh, Jacob Socolar, Bruna R. Amaral, Ali Arab, Robert P. Guralnick, Allen H. Hurlbert, Raphael LaFrance, Stephen J. Mayor, David A. W. Miller, and Morgan W. Tingley. 2021. Migratory strategy drives species-level variation in bird sensitivity to vegetation green-up. Nature Ecology and Evolution. DOI:10.1038/s41559-021-01442-y.
 
+The publication can be found at:
+
+https://dx.doi.org/10.1038/s41559-021-01442-y
+
 This online app can be found at the following link at the time of the paper's publication:
 
 https://migratory-sensitivity.shinyapps.io/MigSen-app
