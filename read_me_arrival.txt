@@ -21,6 +21,7 @@ cell_lng - longitude of cell centroid
 mod - model type that estimates were derived from (IAR - spatially smoothed; GAM - local estimation)
 posterior_mean - posterior mean of arrival estimate. These estimates were derived from data from eBird.
 posterior_sd - posterior standard deviation arrival estimate. These estimates were derived from data from eBird.
+valid_GAM - denotes whether a spcies-cell-year had a valid GAM estimate. Can be used to filter IAR-derived esimates for downstream analyses (see below).
 
 
 DATA USE RECOMMENDATIONS

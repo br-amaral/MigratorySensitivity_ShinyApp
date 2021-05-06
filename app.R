@@ -8,7 +8,7 @@ library(viridis)
 library(maps)
 library(mapproj)
 library(robustHD)
-library("tidyverse")
+library(tidyverse)
 library(geosphere)
 library(shinyBS)
 library(zip)
@@ -17,10 +17,11 @@ library(zip)
 ## load data
 arr_master <- readRDS("Data/data_arr.RDS")
 
-cellnumbs <- as.data.frame(cbind(sort(unique(arr_master$cell)),
-                                 seq(1,length(sort(unique(arr_master$cell))),1)))
-colnames(cellnumbs) <- c("cell","cell2")
-arr_master <- left_join(arr_master,cellnumbs, by="cell") %>% 
+tc <- sort(unique(arr_master$cell))
+cellnumbs <- data.frame(cell = tc, 
+                        cell2 = seq(1,length(tc)))
+
+arr_master <- dplyr::left_join(arr_master, cellnumbs, by = "cell") %>% 
   select(-cell) %>% 
   rename(cell = cell2)
 
@@ -74,7 +75,7 @@ pp <- ggplot(data = worldmap, aes(x = long, y = lat,
 rm(worldmap)
 
 TAB <- readRDS("Data/data_sensi.RDS")
-TAB <- left_join(TAB,cellnumbs, by="cell") %>% 
+TAB <- left_join(TAB, cellnumbs, by="cell") %>% 
   select(-cell) %>% 
   rename(cell = cell2)
 
@@ -110,9 +111,7 @@ doplot <- function(species) {
 # all species
 sensim_df <- readRDS('Data/fit_df_tab5.rds')
 qq <- ggplot(sensim_df, aes(lat, sensim, group = species)) +
-  geom_line(
-    size = 1, col = "gray"
-  ) +
+  geom_line(size = 1, col = "gray") +
   theme_classic() +
   xlab("Latitude (Degrees)") +
   ylab("Sensitivity (Days / Day)") +
@@ -141,7 +140,7 @@ ran_sp <- arr_master3
 cell_grid_tab4 <- readRDS("Data/master_cell_grid.rds") ## load grid - package not on CRAN
 for_gr <- readRDS('Data/for_green-up_dl.rds')
 
-for_gr2 <- left_join(for_gr, cellnumbs, by="cell") %>% 
+for_gr2 <- left_join(for_gr, cellnumbs, by = "cell") %>% 
   select(-cell) %>% 
   rename(cell = cell2)
 
@@ -185,7 +184,7 @@ ran_map <- function(species,cell){
 }
 
 ## Line plot
-plot4 <- function(sp,cel){
+plot4 <- function(sp, cel){
   #sp <- 'Tree Swallow' ; cel <- 36  #;  cel <- 52  ;  cel <- 1
   #filter bird data
   sp1 <- dplyr::select(arr_master3,
@@ -222,7 +221,7 @@ plot4 <- function(sp,cel){
                           high = sc_arr_IAR_mean + arr_IAR_sd)
   
   cols <- c("Bird Arrival"= f1a_bird,"Green-up" = f1a_green)
-  ggplot(aes(x=year, y=sc_arr_IAR_mean, col = 'Bird Arrival'), #group=series, color=series), 
+  ggplot(aes(x = year, y = sc_arr_IAR_mean, col = 'Bird Arrival'), #group=series, color=series), 
          data = sp1_pt) +
     geom_line(size = 0.8, alpha = 0.8) +
     geom_point(size = 1.8, alpha = 0.8) +
@@ -315,6 +314,9 @@ arr_csv <- function(species1, mod, rang){
   if(rang == "bre"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$breed_cell==TRUE),]}
   if(rang == "mig"){ arr_master_ARR  <- arr_master_ARR[which(arr_master_ARR$mig_cell==TRUE),]}
   
+  arr_master_ARR$valid_GAM <- TRUE
+  arr_master_ARR$valid_GAM[which(is.na(arr_master_ARR$arr_GAM_mean))] <- FALSE
+  
   if(mod == "GAM"){ 
     arr_master_ARR2  <- arr_master_ARR %>%
       transmute(species,
@@ -325,7 +327,8 @@ arr_csv <- function(species1, mod, rang){
                 cell_lng,
                 mod = mod,
                 posterior_mean = round(arr_GAM_mean, 2),
-                posterior_sd = round(arr_GAM_sd, 2))
+                posterior_sd = round(arr_GAM_sd, 2),
+                valid_GAM)
   }
   
   if(mod == "IAR"){ 
@@ -338,7 +341,8 @@ arr_csv <- function(species1, mod, rang){
                 cell_lng,
                 mod = mod,
                 posterior_mean = round(arr_IAR_mean, 2),
-                posterior_sd = round(arr_IAR_sd, 2))
+                posterior_sd = round(arr_IAR_sd, 2),
+                valid_GAM)
   }
   
   for(i in 1:nrow(arr_master_ARR2)){
